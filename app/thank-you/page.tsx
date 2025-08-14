@@ -5,8 +5,22 @@ import { motion } from "framer-motion";
 import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 export default function ThankYouPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className='container mx-auto flex min-h-[60vh] items-center justify-center px-4 py-10'>
+          <div className='h-6 w-40 rounded bg-muted animate-pulse' />
+        </div>
+      }>
+      <ThankYouContent />
+    </Suspense>
+  );
+}
+
+function ThankYouContent() {
   const sp = useSearchParams();
   const name = sp.get("name") ?? "";
   const firstName = name?.split(" ")[0] ?? "";
