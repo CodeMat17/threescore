@@ -106,12 +106,7 @@ export const metadata: Metadata = {
     initialScale: 1,
     maximumScale: 5,
   },
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "Threescore Tours",
-  },
+
   applicationName: "Threescore Tours",
   generator: "Next.js",
 };

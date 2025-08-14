@@ -3,6 +3,47 @@ import { fetchQuery } from "convex/nextjs";
 import type { Metadata } from "next";
 import BlogPostClient from "./BlogPostClient";
 
+// Helper function to extract plain text from JSON content
+function extractTextFromJsonContent(content: string): string {
+  try {
+    type TiptapNode = {
+      type?: string;
+      text?: string;
+      content?: TiptapNode[];
+    };
+
+    const parsed = JSON.parse(content) as {
+      type?: string;
+      content?: TiptapNode[];
+    };
+
+    if (parsed?.type !== "doc" || !Array.isArray(parsed.content)) {
+      return content;
+    }
+
+    const extractTextFromNodes = (nodes: TiptapNode[]): string => {
+      if (!Array.isArray(nodes)) return "";
+
+      return nodes
+        .map((node) => {
+          if (node?.type === "text" && typeof node.text === "string") {
+            return node.text;
+          }
+          if (Array.isArray(node?.content)) {
+            return extractTextFromNodes(node.content);
+          }
+          return "";
+        })
+        .join("");
+    };
+
+    return extractTextFromNodes(parsed.content);
+  } catch {
+    // If parsing fails, try to strip HTML tags as fallback
+    return content.replace(/<[^>]*>/g, "");
+  }
+}
+
 // Generate metadata for dynamic blog pages
 export async function generateMetadata({
   params,
@@ -23,7 +64,8 @@ export async function generateMetadata({
 
     // Extract first 160 characters from content for description
     const contentText = post.content
-      ? post.content.replace(/<[^>]*>/g, "").substring(0, 160) + "..."
+      ? extractTextFromJsonContent(post.content).trim().substring(0, 160) +
+        "..."
       : "Read this exciting travel story and tips from Threescore Tours.";
 
     return {
