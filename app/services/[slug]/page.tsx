@@ -5,9 +5,9 @@ import ServiceDetailClient from "./ServiceDetailClient";
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const slug = params.slug;
+  const { slug } = await params;
 
   // Service titles for metadata
   const serviceData: Record<string, { title: string; description: string }> = {
@@ -83,10 +83,11 @@ export async function generateMetadata({
   };
 }
 
-export default function ServiceDetailPage({
+export default async function ServiceDetailPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  return <ServiceDetailClient slug={params.slug} />;
+  const { slug } = await params;
+  return <ServiceDetailClient slug={slug} />;
 }
