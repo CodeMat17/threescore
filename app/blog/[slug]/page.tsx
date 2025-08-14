@@ -1,130 +1,77 @@
-"use client";
-
-import { ShareButton } from "@/components/ui/share-button";
 import { api } from "@/convex/_generated/api";
-import { useQuery } from "convex/react";
-import dayjs from "dayjs";
-import Image from "next/image";
-import { notFound, useParams } from "next/navigation";
-import sanitizeHtml from "sanitize-html";
+import { fetchQuery } from "convex/nextjs";
+import type { Metadata } from "next";
+import BlogPostClient from "./BlogPostClient";
 
-export default function BlogPostPage() {
-  const params = useParams();
-  const slugParam = Array.isArray(params?.slug)
-    ? params.slug[0]
-    : (params?.slug as string | undefined);
+// Generate metadata for dynamic blog pages
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}): Promise<Metadata> {
+  const slug = params.slug;
 
-  const post = useQuery(
-    api.blog.getBlogBySlug,
-    slugParam ? { slug: slugParam } : "skip"
-  );
+  try {
+    const post = await fetchQuery(api.blog.getBlogBySlug, { slug });
 
-  if (post === undefined) {
-    return (
-      <article className='container mx-auto space-y-6 px-4 py-10'>
-        <div className='h-8 w-64 rounded bg-muted animate-pulse' />
-        <div className='relative h-72 w-full overflow-hidden rounded-md border'>
-          <div className='h-full w-full bg-muted animate-pulse' />
-        </div>
-        <div className='space-y-2'>
-          <div className='h-4 w-5/6 rounded bg-muted animate-pulse' />
-          <div className='h-4 w-4/6 rounded bg-muted animate-pulse' />
-          <div className='h-4 w-3/6 rounded bg-muted animate-pulse' />
-        </div>
-      </article>
-    );
-  }
-
-  if (post === null) return notFound();
-
-  type TiptapNode = { type?: string; text?: string; content?: TiptapNode[] };
-  const convertJsonContentToHtml = (raw: string): string => {
-    try {
-      const parsed = JSON.parse(raw) as {
-        type?: string;
-        content?: TiptapNode[];
+    if (!post) {
+      return {
+        title: "Post Not Found",
+        description: "The requested blog post could not be found.",
       };
-      if (parsed?.type !== "doc" || !Array.isArray(parsed.content)) return raw;
-      const escapeHtml = (s: string) =>
-        s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-      const textFromNodes = (nodes: TiptapNode[] | undefined): string => {
-        if (!Array.isArray(nodes)) return "";
-        return nodes
-          .map((n) => {
-            if (n?.type === "text" && typeof n.text === "string")
-              return escapeHtml(n.text);
-            if (Array.isArray(n?.content)) return textFromNodes(n.content);
-            return "";
-          })
-          .join("");
-      };
-      const paragraphs = parsed.content
-        .filter((n) => n?.type === "paragraph")
-        .map((p) => `<p>${textFromNodes(p.content)}</p>`)
-        .join('<p class="my-0.5 leading-none">&nbsp;</p>');
-      return paragraphs || raw;
-    } catch {
-      return raw;
     }
-  };
 
-  const rawHtml = (() => {
-    const trimmed = String(post.content ?? "").trim();
-    return trimmed.startsWith("{")
-      ? convertJsonContentToHtml(trimmed)
-      : trimmed;
-  })();
+    // Extract first 160 characters from content for description
+    const contentText = post.content
+      ? post.content.replace(/<[^>]*>/g, "").substring(0, 160) + "..."
+      : "Read this exciting travel story and tips from Threescore Tours.";
 
-  const safeHtml = sanitizeHtml(rawHtml, {
-    allowedTags: sanitizeHtml.defaults.allowedTags.concat([
-      "img",
-      "h1",
-      "h2",
-      "h3",
-      "blockquote",
-      "p",
-      "ul",
-      "ol",
-      "li",
-      "strong",
-      "em",
-      "a",
-      "br",
-    ]),
-    allowedAttributes: {
-      a: ["href", "name", "target", "rel"],
-      img: ["src", "alt", "width", "height"],
-      "*": ["class"],
-    },
-    allowedSchemes: ["http", "https", "data", "mailto"],
-  });
+    return {
+      title: post.title,
+      description: contentText,
+      keywords: [
+        "travel blog",
+        "East Africa travel",
+        "safari stories",
+        "travel tips",
+        "adventure travel",
+        "Kenya stories",
+        "Tanzania adventures",
+        "Uganda experiences",
+      ],
+      alternates: {
+        canonical: `/blog/${slug}`,
+      },
+      openGraph: {
+        title: `${post.title} — Threescore Tours`,
+        description: contentText,
+        type: "article",
+        publishedTime: new Date(post._creationTime).toISOString(),
+        images: [
+          {
+            url: post.image,
+            width: 1200,
+            height: 630,
+            alt: post.title,
+          },
+        ],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `${post.title} — Threescore Tours`,
+        description: contentText,
+        images: [post.image],
+      },
+    };
+  } catch {
+    return {
+      title: "Blog Post",
+      description:
+        "Discover amazing travel stories and tips from Threescore Tours.",
+    };
+  }
+}
 
-  return (
-    <article className='container max-w-4xl mx-auto space-y-6 px-4 py-10'>
-      <header className='space-y-2'>
-        <h1 className='text-3xl font-bold md:text-4xl'>{post.title}</h1>
-        <div className='text-sm text-muted-foreground'>
-          {dayjs(post._creationTime).format("DD MMM YYYY")}
-        </div>
-        <div className='flex items-center gap-3 pt-2'>
-          <ShareButton
-            title={post.title}
-            text={`Check this out: ${post.title}`}
-          />
-        </div>
-      </header>
-      <div className='relative h-72 w-full overflow-hidden rounded-md border'>
-        <Image
-          src={post.image}
-          alt={post.title}
-          fill
-          className='object-cover'
-        />
-      </div>
-      <div
-        className='prose max-w-none dark:prose-invert'
-        dangerouslySetInnerHTML={{ __html: safeHtml }}
-      />
-    </article>
-  );
+export default function BlogPostPage({ params }: { params: { slug: string } }) {
+  return <BlogPostClient slug={params.slug} />;
 }

@@ -1,0 +1,22 @@
+# TEAM
+
+Developer: Threescore Tours Development Team
+Contact: threescoreexquisitetour@gmail.com
+Location: Riara Road, Nairobi, Kenya
+
+# SITE
+
+Standards: HTML5, CSS3, JavaScript ES6+, React, Next.js
+Components: Tailwind CSS, Convex Database
+Software: Next.js 15, TypeScript, React 19
+
+# COMPANY
+
+Threescore Exquisite Ltd Tours
+Award-winning travel and safari operator
+Specializing in East Africa adventures
+Est. Kenya, serving globally
+
+Follow us:
+Instagram: @threescoreexquisite_cotravel
+Facebook: Threescore Luxury Tours
