@@ -99,7 +99,7 @@ export default function ServiceDetailClient({ slug }: { slug: string }) {
         <header className='max-w-3xl space-y-3'>
           <h1 className='text-3xl font-bold md:text-4xl'>Service not found</h1>
           <p className='text-muted-foreground'>
-            We couldn't find a service for "{slug}".
+            We couldn&apos;t find a service for &quot;{slug}&quot;.
           </p>
         </header>
         <Button asChild>
@@ -141,7 +141,7 @@ export default function ServiceDetailClient({ slug }: { slug: string }) {
                 </Button>
               </div>
               <p className='text-xs text-muted-foreground'>
-                Prefer a custom plan? Tell us what you need and we'll tailor it.
+                Prefer a custom plan? Tell us what you need and we&apos;ll tailor it.
               </p>
             </CardContent>
           </Card>
