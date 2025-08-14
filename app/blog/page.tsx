@@ -95,7 +95,7 @@ export default function BlogPage() {
   const isNextDisabled = currentPage === totalPages;
 
   return (
-    <div className='container mx-auto space-y-8 px-4 py-10'>
+    <div className='container max-w-6xl mx-auto space-y-8 px-4 py-10'>
       <div className='max-w-2xl'>
         <h1 className='text-3xl font-bold md:text-4xl'>Stories & Tips</h1>
         <p className='mt-2 text-muted-foreground'>
@@ -111,7 +111,7 @@ export default function BlogPage() {
         />
       </div>
 
-      <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
+      <div className='grid gap-6 lg:gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
         {blogPosts === undefined ? (
           Array.from({ length: 4 }).map((_, i) => (
             <Card key={i} className='overflow-hidden'>

@@ -208,7 +208,7 @@ export default function ServiceDetailPage() {
   }
 
   return (
-    <div className='container mx-auto space-y-8 px-4 py-10'>
+    <div className='container max-w-6xl mx-auto space-y-8 px-4 py-10'>
       <header className='max-w-3xl space-y-3'>
         <div className='inline-flex size-14 items-center justify-center rounded-full border bg-card shadow-sm'>
           <Icon className='size-6' />

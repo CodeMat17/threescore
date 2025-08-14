@@ -44,7 +44,7 @@ export default function PackagesPage() {
   }, [packages, selectedLocation]);
 
   return (
-    <div className='container mx-auto space-y-8 px-4 py-10'>
+    <div className='container max-w-6xl mx-auto space-y-8 px-4 py-10'>
       <div className='max-w-2xl'>
         <h1 className='bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-3xl font-extrabold text-transparent md:text-4xl'>
           Packages
@@ -65,8 +65,8 @@ export default function PackagesPage() {
               value={selectedLocation ?? "__all__"}
               onValueChange={(v) =>
                 setSelectedLocation(v === "__all__" ? undefined : v)
-              } >
-              <SelectTrigger className="w-full">
+              }>
+              <SelectTrigger className='w-full'>
                 <SelectValue placeholder='All locations' />
               </SelectTrigger>
               <SelectContent>
@@ -100,14 +100,14 @@ export default function PackagesPage() {
                 <div className='h-5 w-4/5 rounded bg-muted animate-pulse' />
                 <div className='mt-2 h-4 w-1/3 rounded bg-muted animate-pulse' />
               </CardHeader>
-              <CardContent className='mt-auto flex flex-col gap-3 pt-0'>
+              <CardContent className='flex flex-col gap-3 pt-0 flex-1'>
                 <div className='h-4 w-1/2 rounded bg-muted animate-pulse' />
-                <div className='space-y-2'>
+                <div className='space-y-2 flex-1'>
                   <div className='h-3 w-5/6 rounded bg-muted animate-pulse' />
                   <div className='h-3 w-2/3 rounded bg-muted animate-pulse' />
                   <div className='h-3 w-1/2 rounded bg-muted animate-pulse' />
                 </div>
-                <div className='mt-auto flex items-center gap-2'>
+                <div className='mt-1 flex items-center gap-2'>
                   <div className='h-9 w-24 rounded bg-muted animate-pulse' />
                   <div className='h-9 w-24 rounded bg-muted animate-pulse' />
                 </div>
@@ -147,8 +147,8 @@ export default function PackagesPage() {
                   {pkg.price.toLocaleString()}
                 </CardDescription>
               </CardHeader>
-              <CardContent className='mt-auto flex flex-col gap-3 pt-0'>
-                <div>
+              <CardContent className='flex flex-col gap-3 pt-0 flex-1'>
+                <div className='flex-1'>
                   <div className='text-sm font-semibold'>
                     Destination highlights
                   </div>
@@ -159,7 +159,7 @@ export default function PackagesPage() {
                   </ul>
                 </div>
 
-                <div className='mt-auto flex items-center gap-2'>
+                <div className='mt-1 flex items-center gap-2'>
                   <Button asChild size='sm' className='shadow'>
                     <Link
                       href={{

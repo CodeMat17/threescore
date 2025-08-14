@@ -77,12 +77,12 @@ export function PopularDestinations() {
           <Link href='/packages'>View all</Link>
         </Button>
       </div>
-      <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
+      <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
         {packages === undefined
-          ? Array.from({ length: 4 }).map((_, idx) => (
+          ? Array.from({ length: 3 }).map((_, idx) => (
               <Card
                 key={idx}
-                className='relative overflow-hidden rounded-2xl border shadow-sm'>
+                className='relative flex h-full flex-col overflow-hidden rounded-2xl border shadow-sm'>
                 <div className='relative h-36 w-full sm:h-40 lg:h-44 bg-muted animate-pulse' />
                 <CardHeader className='space-y-2'>
                   <div className='h-4 w-3/4 rounded bg-muted animate-pulse' />
@@ -102,7 +102,7 @@ export function PopularDestinations() {
           : featured.map((pkg) => (
               <Card
                 key={pkg._id}
-                className='group relative overflow-hidden rounded-2xl border shadow-sm transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-lg'>
+                className='group relative flex h-full flex-col overflow-hidden rounded-2xl border shadow-sm transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-lg'>
                 <div className='relative h-36 w-full sm:h-40 lg:h-44'>
                   <Image
                     src={pkg.image}
@@ -125,13 +125,13 @@ export function PopularDestinations() {
                     {pkg.price.toLocaleString()}
                   </CardDescription>
                 </CardHeader>
-                <CardContent className='pt-0'>
-                  <ul className='mb-4 list-disc space-y-1 pl-5 text-sm text-muted-foreground'>
+                <CardContent className='pt-0 flex flex-col flex-1'>
+                  <ul className='mb-4 list-disc space-y-1 pl-5 text-sm text-muted-foreground flex-1'>
                     {pkg.highlight.slice(0, 3).map((h) => (
                       <li key={h}>{h}</li>
                     ))}
                   </ul>
-                  <div className='flex items-center gap-3'>
+                  <div className='mt-1 flex items-center gap-3'>
                     <Button asChild size='sm' className='shadow'>
                       <Link href={`/packages`}> Learn More</Link>
                     </Button>

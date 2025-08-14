@@ -21,7 +21,7 @@ export default function AboutPage() {
   const chooseUs = useQuery(api.whyChooseUs.getWhyChooseUs);
 
   return (
-    <div className='container mx-auto space-y-12 px-4 py-10'>
+    <div className='container max-w-6xl mx-auto space-y-12 px-4 py-10'>
       {/* Hero */}
       <section className='grid items-center gap-8 lg:grid-cols-2'>
         <div className='space-y-5'>

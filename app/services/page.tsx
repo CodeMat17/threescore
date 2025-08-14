@@ -17,7 +17,7 @@ export default function ServicesPage() {
   const services = useQuery(api.services.getServices);
 
   return (
-    <div className='container mx-auto space-y-8 px-4 py-10'>
+    <div className='container max-w-6xl mx-auto space-y-8 px-4 py-10'>
       <div className='max-w-2xl'>
         <h1 className='text-3xl font-bold md:text-4xl'>Services</h1>
         <p className='mt-2 text-muted-foreground'>
