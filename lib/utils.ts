@@ -29,7 +29,7 @@ export function extractErrorMessage(error: unknown): string {
   }
 
   // Otherwise, strip any trailing stack location like: " at handler (../file.ts:line:col)"
-  msg = msg.replace(/\s+at\s+.*$/s, "").trim();
+  msg = msg.replace(/\s+at\s+[\s\S]*$/, "").trim();
 
   // If the message still contains multiple segments separated by ": ", pick the last meaningful part
   const parts = msg
