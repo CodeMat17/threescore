@@ -7,6 +7,7 @@ import {
   OrganizationStructuredData,
   WebSiteStructuredData,
 } from "@/components/StructuredData";
+import { WhatsAppButton } from "@/components/ui/whatsapp-button";
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
@@ -128,6 +129,10 @@ export default function RootLayout({
             <main className='min-h-[70vh]'>{children}</main>
             <Footer />
             <AppToaster />
+            <WhatsAppButton
+              phoneNumber='+254706572045'
+              message='Welcome to Threescore Tours. How can we assist you today?'
+            />
           </ThemeProvider>
         </ConvexProviderClient>
       </body>
