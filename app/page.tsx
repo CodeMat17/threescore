@@ -10,7 +10,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Home",
   description:
-    "Discover award-winning safaris, beach escapes, and adventure tours across Kenya, Tanzania, Uganda, and Dubai. Expert guides, personalized itineraries, and unforgettable wildlife experiences await.",
+    "Discover celebrated safaris, beach escapes, and adventure tours across Kenya, Tanzania, Uganda, and Dubai. Expert guides, personalized itineraries, and unforgettable wildlife experiences await.",
   keywords: [
     "safari tours Kenya",
     "Tanzania wildlife",
@@ -25,9 +25,9 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "Threescore Tours — Award‑Winning Travels & Safaris",
+    title: "Threescore Tours — Celebrated Travels & Safaris",
     description:
-      "Discover award-winning safaris, beach escapes, and adventure tours across Kenya, Tanzania, Uganda, and Dubai. Expert guides and unforgettable experiences.",
+      "Discover celebrated safaris, beach escapes, and adventure tours across Kenya, Tanzania, Uganda, and Dubai. Expert guides and unforgettable experiences.",
     type: "website",
     images: [
       {
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Threescore Tours — Award‑Winning Travels & Safaris",
+    title: "Threescore Tours — Celebrated Travels & Safaris",
     description:
       "Discover award-winning safaris, beach escapes, and adventure tours across Kenya, Tanzania, Uganda, and Dubai.",
     images: ["/opengraph-image.png"],

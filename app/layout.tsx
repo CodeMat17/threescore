@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "Threescore Tours — Award‑Winning Travels & Safaris",
+    title: "Threescore Tours — Celebrated Travels & Safaris",
     description:
       "Experience unforgettable safaris, stunning beach escapes, and cultural adventures across Kenya, Tanzania, Uganda, and Dubai with East Africa's premier tour operator.",
     siteName: "Threescore Tours",
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Threescore Tours — Award‑Winning Travels & Safaris",
+    title: "Threescore Tours — Celebrated Travels & Safaris",
     description:
       "Experience unforgettable safaris, stunning beach escapes, and cultural adventures across Kenya, Tanzania, Uganda, and Dubai.",
     images: ["/opengraph-image.png"],
