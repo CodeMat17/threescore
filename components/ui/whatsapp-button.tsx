@@ -27,14 +27,8 @@ export function WhatsAppButton({
       `https://wa.me/${formattedPhone}`,
     ];
 
-    console.log("Trying WhatsApp approaches:");
-    approaches.forEach((url, index) => {
-      console.log(`Approach ${index + 1}:`, url);
-    });
-
-    // Try the first approach
+    // Use the first approach (wa.me with encoded message)
     const whatsappUrl = approaches[0];
-    console.log("Using:", whatsappUrl);
 
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };

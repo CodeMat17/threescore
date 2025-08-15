@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   description:
     "Threescore Exquisite Ltd Tours crafts unforgettable safaris, beach escapes, and international trips across Kenya, East Africa, and beyond.",
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://example.com"
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://threescoretours.com"
   ),
   keywords: [
     "Kenya safaris",
@@ -131,7 +131,7 @@ export default function RootLayout({
             <AppToaster />
             <WhatsAppButton
               phoneNumber='+254706572045'
-              message='Welcome to Threescore Tours. How can we assist you today?'
+              message='Welcome to Threescore Exquisite Tours. How can we assist you today?'
             />
           </ThemeProvider>
         </ConvexProviderClient>
