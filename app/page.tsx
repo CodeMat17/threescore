@@ -49,8 +49,8 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <div className='space-y-12 w-full max-w-6xl mx-auto'>
-      <section className='container mx-auto max-w- px-4 pt-6'>
+    <div className='space-y-12 w-full mx-auto'>
+      <section className=' mx-auto'>
         <HeroCarousel />
       </section>
       <ValueProps />

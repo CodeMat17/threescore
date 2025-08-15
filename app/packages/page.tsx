@@ -44,7 +44,7 @@ export default function PackagesPage() {
   }, [packages, selectedLocation]);
 
   return (
-    <div className='container max-w-6xl mx-auto space-y-8 px-4 py-10'>
+    <div className=' mx-auto space-y-8 px-4 md:px-8 lg:px-12 py-10'>
       <div className='max-w-2xl'>
         <h1 className='bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-3xl font-extrabold text-transparent md:text-4xl'>
           Packages

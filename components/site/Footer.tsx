@@ -18,7 +18,7 @@ export function Footer() {
 
   return (
     <footer className='border-t bg-background'>
-      <div className='container mx-auto grid grid-cols-1 gap-8 px-4 py-10 md:grid-cols-4'>
+      <div className=' mx-auto grid grid-cols-1 gap-8 px-4 md:px-8 lg:px-12 py-10 md:grid-cols-4'>
         <div>
           <Logo className='w-20 h-20' />{" "}
           <p className='text-xl font-semibold'>Threescore Tours</p>

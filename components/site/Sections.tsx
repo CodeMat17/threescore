@@ -61,7 +61,7 @@ export function PopularDestinations() {
   const packages = useQuery(api.packages.getPackages);
   const featured = (packages ?? []).slice(0, 4);
   return (
-    <section className='container mx-auto px-4 py-12'>
+    <section className=' mx-auto px-4 md:px-8 lg:px-12 py-12'>
       <div className='mb-6 flex items-end justify-between'>
         <div>
           <h2 className='text-2xl font-semibold tracking-tight md:text-3xl'>
@@ -77,9 +77,9 @@ export function PopularDestinations() {
           <Link href='/packages'>View all</Link>
         </Button>
       </div>
-      <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
+      <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
         {packages === undefined
-          ? Array.from({ length: 3 }).map((_, idx) => (
+          ? Array.from({ length: 4 }).map((_, idx) => (
               <Card
                 key={idx}
                 className='relative flex h-full flex-col overflow-hidden rounded-2xl border shadow-sm'>
@@ -157,7 +157,7 @@ export function PopularDestinations() {
 
 export function Testimonials() {
   return (
-    <section className='container mx-auto px-4 py-12'>
+    <section className=' mx-auto px-4 md:px-8 lg:px-12 py-12'>
       <h2 className='mb-6 text-2xl font-semibold tracking-tight md:text-3xl'>
         What Clients Say
       </h2>
@@ -206,7 +206,7 @@ export function ServicesOverview() {
   };
 
   return (
-    <section className='container mx-auto px-4 py-12'>
+    <section className=' mx-auto px-4 md:px-8 lg:px-12 py-12'>
       <div className='mb-6 flex items-end justify-between'>
         <div>
           <h2 className='text-2xl font-semibold tracking-tight md:text-3xl'>

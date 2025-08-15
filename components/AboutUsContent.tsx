@@ -21,7 +21,7 @@ export default function AboutUsContent() {
   const chooseUs = useQuery(api.whyChooseUs.getWhyChooseUs);
 
   return (
-    <div className='container max-w-6xl mx-auto space-y-12 px-4 py-10'>
+    <div className=' mx-auto space-y-12 px-4 md:px-8 lg:px-12 py-10'>
       {/* Hero */}
       <section className='grid items-center gap-8 lg:grid-cols-2'>
         <div className='space-y-5'>

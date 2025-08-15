@@ -11,9 +11,9 @@ import Logo from "../Logo";
 
 const navItems: Array<{ href: string; label: string }> = [
   { href: "/", label: "Home" },
+  { href: "/about", label: "About" },
   { href: "/packages", label: "Packages" },
   { href: "/services", label: "Services" },
-  { href: "/about", label: "About" },
   { href: "/blog", label: "Blog" },
   { href: "/contact", label: "Contact" },
 ];
