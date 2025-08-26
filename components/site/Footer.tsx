@@ -38,7 +38,9 @@ export function Footer() {
       <div className=' mx-auto grid grid-cols-1 gap-8 px-4 md:px-8 lg:px-12 py-10 md:grid-cols-4'>
         <div>
           <Logo className='w-20 h-20' />{" "}
-          <p className='text-xl font-semibold'>Threescore Tours</p>
+          <p className='text-xl font-semibold'>
+            Threescore Exquisite Collections Ltd
+          </p>
           <p className='mt-2 text-s text-muted-foreground'>
             Award‑winning travels and tours across Africa and beyond.
           </p>

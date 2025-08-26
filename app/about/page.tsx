@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "About Us",
   description:
-    "Learn about Threescore Tours, East Africa's premier tour operator. Our story, mission, and commitment to creating unforgettable safari and travel experiences since our founding.",
+    "Learn about Threescore Exquisite Collections Ltd, East Africa's premier tour operator. Our story, mission, and commitment to creating unforgettable safari and travel experiences since our founding.",
   keywords: [
     "about Threescore Tours",
     "East Africa tour operator",

@@ -26,9 +26,11 @@ export function Header() {
     <header className='sticky top-0 z-40 w-full border-b bg-background py-2'>
       <div className=' mx-auto flex h-16 items-center justify-between px-4 md:px-8 lg:px-12'>
         <Link href='/' className='text-lg font-semibold tracking-tight'>
-          <div className="flex items-center gap-2">
-          <Logo className="w-16 h-16" />
-           <p className="hidden sm:flex md:hidden lg:flex">Threescore Tours</p> </div>
+          <div className='flex items-center gap-2'>
+            <Logo className='w-16 h-16' />
+            <p className='hidden sm:flex md:hidden lg:flex'>
+              Threescore Exquisite Collections</p>{" "}
+          </div>
         </Link>
 
         <nav className='hidden gap-6 md:flex'>
