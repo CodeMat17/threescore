@@ -98,10 +98,6 @@ export const metadata: Metadata = {
   classification: "Business",
   referrer: "origin-when-cross-origin",
   colorScheme: "light dark",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
-  ],
   viewport: {
     width: "device-width",
     initialScale: 1,
@@ -110,6 +106,13 @@ export const metadata: Metadata = {
 
   applicationName: "Threescore Tours",
   generator: "Next.js",
+};
+
+export const viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+  ],
 };
 
 export default function RootLayout({
@@ -131,7 +134,7 @@ export default function RootLayout({
             <AppToaster />
             <WhatsAppButton
               phoneNumber='+254706572045'
-              message='Welcome to Threescore Exquisite Tours. How can we assist you today?'
+              message='Hello, Threescore Exquisite Collections, I want to make a booking'
             />
           </ThemeProvider>
         </ConvexProviderClient>

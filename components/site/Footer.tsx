@@ -7,6 +7,21 @@ import { Facebook, Instagram, Mail, MapPin, Phone } from "lucide-react";
 import Link from "next/link";
 import Logo from "../Logo";
 
+// Custom TikTok icon component to match lucide-react style
+const TikTokIcon = ({ className }: { className?: string }) => (
+  <svg
+    xmlns='http://www.w3.org/2000/svg'
+    viewBox='0 0 24 24'
+    fill='none'
+    stroke='currentColor'
+    strokeWidth='2'
+    strokeLinecap='round'
+    strokeLinejoin='round'
+    className={className}>
+    <path d='M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5' />
+  </svg>
+);
+
 export function Footer() {
   const info = useQuery(api.companyInfo.getCompanyInfo);
   const socials = useQuery(api.socials.getSocials);
@@ -15,6 +30,8 @@ export function Footer() {
   const email = info?.email ?? company.email;
   const instagramUrl = socials?.instagram || company.instagram;
   const facebookUrl = socials?.facebook || company.facebook;
+  const tiktokUrl =
+    "https://www.tiktok.com/@threescore.exquis?_t=ZM-8z0RQx3qzOI&_r=1";
 
   return (
     <footer className='border-t bg-background'>
@@ -70,8 +87,8 @@ export function Footer() {
           </ul>
           <a
             href={`mailto:${email}`}
-            className='mt-1 flex items-center gap-2 text-sm text-muted-foreground hover:underline'>
-            <Mail className='h-4 w-4' />
+            className='mt-1 flex items-center gap-2 text-sm text-muted-foreground hover:underline line-clamp-1'>
+            <Mail className='h-4 w-4 shrink-0' />
             <span>{email}</span>
           </a>
         </div>
@@ -96,6 +113,16 @@ export function Footer() {
                 className='flex items-center gap-2 hover:underline'>
                 <Facebook className='h-4 w-4' />
                 <span>Facebook</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href={tiktokUrl}
+                target='_blank'
+                rel='noreferrer'
+                className='flex items-center gap-2 hover:underline'>
+                <TikTokIcon className='h-4 w-4' />
+                <span>Tiktok</span>
               </a>
             </li>
           </ul>

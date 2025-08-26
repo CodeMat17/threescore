@@ -13,6 +13,21 @@ import { useRouter } from "next/navigation";
 import * as React from "react";
 import { toast } from "sonner";
 
+// Custom TikTok icon component to match lucide-react style
+const TikTokIcon = ({ className }: { className?: string }) => (
+  <svg
+    xmlns='http://www.w3.org/2000/svg'
+    viewBox='0 0 24 24'
+    fill='none'
+    stroke='currentColor'
+    strokeWidth='2'
+    strokeLinecap='round'
+    strokeLinejoin='round'
+    className={className}>
+    <path d='M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5' />
+  </svg>
+);
+
 export default function ContactClient() {
   type SocialsDoc = Doc<"socials">;
 
@@ -34,6 +49,7 @@ export default function ContactClient() {
   ];
   const instagram: string = socials?.instagram ?? company.instagram;
   const facebook: string = socials?.facebook ?? company.facebook;
+  const tiktok: string = "https://www.tiktok.com/@threescore.exquis?_t=ZM-8z0RQx3qzOI&_r=1";
 
   const addContact = useMutation(api.contact.addContact);
   const router = useRouter();
@@ -201,6 +217,14 @@ export default function ContactClient() {
                   target='_blank'
                   rel='noreferrer'>
                   <Facebook className='h-4 w-4' /> Facebook
+                </a>
+                <span className='opacity-60'>•</span>
+                <a
+                  className='inline-flex items-center gap-1 underline'
+                  href={tiktok}
+                  target='_blank'
+                  rel='noreferrer'>
+                  <TikTokIcon className='h-4 w-4' /> Tiktok
                 </a>
               </div>
               <div className='pt-1'>
