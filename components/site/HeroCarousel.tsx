@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
-import { useQuery } from "convex/react";
+import { Preloaded, usePreloadedQuery } from "convex/react";
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -13,8 +13,12 @@ type HeroSlide = {
   image: string;
 };
 
-export function HeroCarousel() {
-  const data = useQuery(api.carousel.getCarousel);
+export function HeroCarousel({
+  preloadedSlides,
+}: {
+  preloadedSlides: Preloaded<typeof api.carousel.getCarousel>;
+}) {
+  const data = usePreloadedQuery(preloadedSlides);
 
   const slides = React.useMemo<HeroSlide[] | undefined>(() => {
     if (data === undefined) return undefined; // loading
@@ -64,14 +68,14 @@ export function HeroCarousel() {
               initial={{ opacity: 0, scale: 1.02 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0.4 }}
-              transition={{ duration: 0.6 }}
+              transition={{ duration: 0.4 }}
               className='absolute inset-0'>
               <Image
                 src={slides[index]?.image || ""}
                 alt={slides[index]?.title || "Hero image"}
                 fill
                 priority
-                quality={90}
+                quality={75}
                 sizes='100vw'
                 className='object-cover'
               />

@@ -5,6 +5,8 @@ import {
   Testimonials,
   ValueProps,
 } from "@/components/site/Sections";
+import { api } from "@/convex/_generated/api";
+import { preloadQuery } from "convex/nextjs";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -47,11 +49,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  const preloadedSlides = await preloadQuery(api.carousel.getCarousel);
   return (
     <div className='space-y-12 w-full mx-auto'>
       <section className=' mx-auto'>
-        <HeroCarousel />
+        <HeroCarousel preloadedSlides={preloadedSlides} />
       </section>
       <ValueProps />
       <PopularDestinations />
