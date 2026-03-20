@@ -20,6 +20,7 @@ import type * as carousel from "../carousel.js";
 import type * as companyInfo from "../companyInfo.js";
 import type * as contact from "../contact.js";
 import type * as media from "../media.js";
+import type * as migrations from "../migrations.js";
 import type * as ourStrength from "../ourStrength.js";
 import type * as packages from "../packages.js";
 import type * as pages from "../pages.js";
@@ -48,6 +49,7 @@ declare const fullApi: ApiFromModules<{
   companyInfo: typeof companyInfo;
   contact: typeof contact;
   media: typeof media;
+  migrations: typeof migrations;
   ourStrength: typeof ourStrength;
   packages: typeof packages;
   pages: typeof pages;
