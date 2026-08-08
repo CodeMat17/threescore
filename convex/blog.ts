@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
+import { requireAdmin } from "./lib/auth";
 // Import dynamically to avoid server type friction; keep types via dev dep
 import sanitizeHtml from "sanitize-html";
 
@@ -41,6 +42,7 @@ export const addBlog = mutation({
     imageId: v.id("_storage"),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const title = args.title.trim();
     // const description = args.description.trim();
     const content = sanitizeHtml(args.content.trim());
@@ -78,6 +80,7 @@ export const updateBlog = mutation({
     imageId: v.id("_storage"),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const title = args.title.trim();
     // const description = args.description.trim();
     const content = sanitizeHtml(args.content.trim());
@@ -115,6 +118,7 @@ export const updateBlog = mutation({
 export const deleteBlog = mutation({
   args: { id: v.id("blog") },
   handler: async (ctx, { id }) => {
+    await requireAdmin(ctx);
     const doc = await ctx.db.get(id);
     if (doc?.imageId) {
       await ctx.storage.delete(doc.imageId as Id<"_storage">);

@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
+import { requireAdmin } from "./lib/auth";
 
 // Queries
 export const getPackages = query({
@@ -22,6 +23,7 @@ export const addPackages = mutation({
     imageId: v.id("_storage"),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const title = args.title.trim();
     const destination = args.destination.trim();
     const price = args.price;
@@ -69,6 +71,7 @@ export const updatePackages = mutation({
     imageId: v.id("_storage"),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const title = args.title.trim();
     const destination = args.destination.trim();
     const price = args.price;
@@ -108,6 +111,7 @@ export const updatePackages = mutation({
 export const deletePackages = mutation({
   args: { id: v.id("packages") },
   handler: async (ctx, { id }) => {
+    await requireAdmin(ctx);
     const doc = await ctx.db.get(id);
     if (doc?.imageId) {
       await ctx.storage.delete(doc.imageId as Id<"_storage">);

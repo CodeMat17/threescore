@@ -1,47 +1,34 @@
 import AboutUsContent from "@/components/AboutUsContent";
+import { BreadcrumbStructuredData } from "@/components/StructuredData";
+import { pageMetadata } from "@/lib/metadata";
 
-import type { Metadata } from "next";
+export const dynamic = "force-static";
+export const revalidate = 300;
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "About Us",
   description:
-    "Learn about Threescore Exquisite Collections Ltd, East Africa's premier tour operator. Our story, mission, and commitment to creating unforgettable safari and travel experiences since our founding.",
+    "Threescore Exquisite Collections Ltd is a Nairobi-based tour operator crafting safaris, beach escapes and international journeys across East Africa and beyond.",
+  path: "/about",
   keywords: [
     "about Threescore Tours",
     "East Africa tour operator",
     "safari company Kenya",
-    "travel company history",
-    "professional tour guides",
-    "sustainable tourism",
-    "local expertise",
-    "award winning tours",
+    "Nairobi travel agency",
+    "sustainable tourism Kenya",
   ],
-  alternates: {
-    canonical: "/about",
-  },
-  openGraph: {
-    title: "About Us — Threescore Tours",
-    description:
-      "Learn about Threescore Tours, East Africa's premier tour operator. Our story, mission, and commitment to creating unforgettable experiences.",
-    type: "website",
-    images: [
-      {
-        url: "/opengraph-image.png",
-        width: 1200,
-        height: 630,
-        alt: "About Threescore Tours - East Africa's premier tour operator",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "About Us — Threescore Tours",
-    description:
-      "Learn about Threescore Tours, East Africa's premier tour operator and our commitment to unforgettable experiences.",
-    images: ["/opengraph-image.png"],
-  },
-};
+});
 
 export default function AboutPage() {
-  return <AboutUsContent />;
+  return (
+    <>
+      <BreadcrumbStructuredData
+        items={[
+          { name: "Home", url: "/" },
+          { name: "About", url: "/about" },
+        ]}
+      />
+      <AboutUsContent />
+    </>
+  );
 }

@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireAdmin } from "./lib/auth";
 
 export const getCompanyInfo = query({
   args: {},
@@ -25,6 +26,7 @@ export const updateCompanyInfo = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const normalized = {
       name: args.name.trim(),
       address: args.address.trim(),

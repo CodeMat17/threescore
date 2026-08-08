@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireAdmin } from "./lib/auth";
 
 export const getWhyChooseUs = query({
   args: {},
@@ -19,6 +20,7 @@ export const setWhyChooseUs = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const existing = await ctx.db.query("whyChooseUs").collect();
     const normalizedItems = args.items.map((i) => ({
       title: i.title.trim(),

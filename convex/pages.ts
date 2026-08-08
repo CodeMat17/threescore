@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireAdmin } from "./lib/auth";
 
 export const list = query({
   args: { publishedOnly: v.optional(v.boolean()) },
@@ -35,6 +36,7 @@ export const upsert = mutation({
     published: v.boolean(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const now = Date.now();
     const existing = await ctx.db
       .query("pages")
@@ -67,6 +69,7 @@ export const upsert = mutation({
 export const remove = mutation({
   args: { slug: v.string() },
   handler: async (ctx, { slug }) => {
+    await requireAdmin(ctx);
     const existing = await ctx.db
       .query("pages")
       .withIndex("by_slug", (q) => q.eq("slug", slug))

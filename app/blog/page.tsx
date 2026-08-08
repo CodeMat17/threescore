@@ -1,242 +1,243 @@
-"use client";
-
-import { Button } from "@/components/ui/button";
+import { BreadcrumbStructuredData } from "@/components/StructuredData";
+import { SearchField } from "@/components/site/Filters";
+import { Reveal, RevealGroup, RevealItem } from "@/components/site/Reveal";
+import { Section } from "@/components/site/Section";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 import { api } from "@/convex/_generated/api";
-import { useQuery } from "convex/react";
-import dayjs from "dayjs";
+import { pageMetadata } from "@/lib/metadata";
+import { richTextToPlain } from "@/lib/rich-text";
+import { company } from "@/lib/data";
+import { fetchQuery } from "convex/nextjs";
+import { format } from "date-fns";
+import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
 
-export default function BlogPage() {
-  const blogPosts = useQuery(api.blog.getBlog);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 8;
+export const revalidate = 300;
 
-  const filteredPosts = useMemo(() => {
-    if (!blogPosts) return [];
-    const query = searchTerm.trim().toLowerCase();
-    if (!query) return blogPosts;
-    return blogPosts.filter((post) => post.title.toLowerCase().includes(query));
-  }, [blogPosts, searchTerm]);
+export const metadata = pageMetadata({
+  title: "Stories & Tips",
+  description:
+    "Travel stories, destination guides, and expert tips for your East Africa adventure — from wildlife photography to cultural experiences.",
+  path: "/blog",
+  keywords: [
+    "travel blog East Africa",
+    "safari tips",
+    "Kenya travel guide",
+    "Tanzania stories",
+    "Uganda adventures",
+    "destination guides",
+  ],
+});
 
-  const totalPages = useMemo(() => {
-    return Math.max(1, Math.ceil((filteredPosts?.length || 0) / pageSize));
-  }, [filteredPosts?.length]);
+const PAGE_SIZE = 9;
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm]);
+export default async function BlogPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; page?: string }>;
+}) {
+  const { q = "", page: pageParam } = await searchParams;
+  const posts = await fetchQuery(api.blog.getBlog).catch(() => []);
 
-  useEffect(() => {
-    if (currentPage > totalPages) setCurrentPage(totalPages);
-  }, [totalPages, currentPage]);
+  const query = q.trim().toLowerCase();
 
-  const pagedPosts = useMemo(() => {
-    const startIndex = (currentPage - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    return filteredPosts.slice(startIndex, endIndex);
-  }, [filteredPosts, currentPage]);
+  // Search and paginate during the server render. Previously the browser
+  // downloaded every post on every visit and sliced them client-side.
+  const matching = query
+    ? posts.filter(
+        (p) =>
+          p.title.toLowerCase().includes(query) ||
+          p.content.toLowerCase().includes(query)
+      )
+    : posts;
 
-  const goToPage = (page: number) => {
-    const clamped = Math.min(Math.max(1, page), totalPages);
-    setCurrentPage(clamped);
+  const sorted = [...matching].sort(
+    (a, b) => b._creationTime - a._creationTime
+  );
+
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  const page = Math.min(Math.max(1, Number(pageParam) || 1), totalPages);
+  const visible = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const hrefFor = (target: number) => {
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (target > 1) params.set("page", String(target));
+    const qs = params.toString();
+    return qs ? `/blog?${qs}` : "/blog";
   };
 
-  const pageItems = useMemo<(number | "ellipsis")[]>(() => {
-    if (!totalPages) return [];
-    if (totalPages <= 7) {
-      return Array.from({ length: totalPages }, (_, i) => i + 1);
-    }
-    if (currentPage <= 4) {
-      return [1, 2, 3, 4, 5, "ellipsis", totalPages];
-    }
-    if (currentPage >= totalPages - 3) {
-      return [
-        1,
-        "ellipsis",
-        totalPages - 4,
-        totalPages - 3,
-        totalPages - 2,
-        totalPages - 1,
-        totalPages,
-      ];
-    }
-    return [
-      1,
-      "ellipsis",
-      currentPage - 1,
-      currentPage,
-      currentPage + 1,
-      "ellipsis",
-      totalPages,
-    ];
-  }, [currentPage, totalPages]);
-
-  const isPrevDisabled = currentPage === 1;
-  const isNextDisabled = currentPage === totalPages;
-
   return (
-    <div className='container max-w-6xl mx-auto space-y-8 px-4 py-10'>
-      <div className='max-w-2xl'>
-        <h1 className='text-3xl font-bold md:text-4xl'>Stories & Tips</h1>
-        <p className='mt-2 text-muted-foreground'>
-          Adventure stories, destination highlights, and travel tips.
-        </p>
-      </div>
+    <>
+      <BreadcrumbStructuredData
+        items={[
+          { name: "Home", url: "/" },
+          { name: "Blog", url: "/blog" },
+        ]}
+      />
 
-      <div className='max-w-md'>
-        <Input
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder='Search posts'
-        />
-      </div>
+      <Section size='loose'>
+        <Reveal className='max-w-2xl'>
+          <p className='mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-primary'>
+            From the field
+          </p>
+          <h1 className='text-4xl font-semibold md:text-5xl'>Stories & tips</h1>
+          <p className='mt-4 text-lg text-muted-foreground'>
+            Destination guides, packing advice, and notes from the road.
+          </p>
+        </Reveal>
 
-      <div className='grid gap-6 lg:gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
-        {blogPosts === undefined ? (
-          Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i} className='overflow-hidden'>
-              <div className='relative h-44 w-full bg-muted animate-pulse' />
-              <CardHeader>
-                <CardTitle className='text-lg'>
-                  <div className='h-5 w-48 rounded bg-muted animate-pulse' />
-                </CardTitle>
-                <CardDescription>
-                  <div className='h-4 w-24 rounded bg-muted animate-pulse' />
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className='h-4 w-20 rounded bg-muted animate-pulse' />
-              </CardContent>
-            </Card>
-          ))
-        ) : !blogPosts || blogPosts.length < 1 ? (
-          <div className='text-sm text-muted-foreground'>
-            No blog posts yet. Please check back soon.
-          </div>
-        ) : filteredPosts.length < 1 ? (
-          <div className='text-sm text-muted-foreground'>
-            No posts match your search.
-          </div>
+        <div className='mt-10 border-b pb-6'>
+          <SearchField
+            id='blog-search'
+            defaultValue={q}
+            label='Search articles'
+            placeholder='Try “Maasai Mara” or “packing”'
+          />
+        </div>
+
+        {visible.length === 0 ? (
+          <p className='mt-12 text-muted-foreground'>
+            {query
+              ? `No posts match “${q}”.`
+              : "No posts yet — check back soon."}
+          </p>
         ) : (
-          pagedPosts.map((p) => (
-            <Card key={p.slug} className='overflow-hidden'>
-              <div className='relative h-44 w-full'>
-                <Image
-                  src={p.image}
-                  alt={p.title}
-                  fill
-                  className='object-cover'
-                />
-              </div>
-              <CardHeader>
-                <CardTitle className='text-lg'>
-                  <Link href={`/blog/${p.slug}`}>{p.title}</Link>
-                </CardTitle>
-                <CardDescription>
-                  {dayjs(p._creationTime).format("DD MMM YYYY")}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button asChild variant={"outline"} className='shadow-md'>
-                  <Link href={`/blog/${p.slug}`}>Read More</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
-
-      {blogPosts !== undefined && filteredPosts.length > 0 && (
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href={isPrevDisabled ? undefined : "#"}
-                aria-disabled={isPrevDisabled}
-                tabIndex={isPrevDisabled ? -1 : 0}
-                className={
-                  isPrevDisabled ? "pointer-events-none opacity-50" : undefined
-                }
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (!isPrevDisabled) goToPage(currentPage - 1);
-                }}
-              />
-            </PaginationItem>
-            {pageItems.map((item, idx) => (
-              <PaginationItem key={`${item}-${idx}`}>
-                {item === "ellipsis" ? (
-                  <PaginationEllipsis />
-                ) : (
-                  <PaginationLink
-                    href='#'
-                    isActive={item === currentPage}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      goToPage(item as number);
-                    }}>
-                    {item}
-                  </PaginationLink>
-                )}
-              </PaginationItem>
+          <RevealGroup className='mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
+            {visible.map((post, i) => (
+              <RevealItem key={post.slug} className='h-full'>
+                <Card className='group relative flex h-full flex-col gap-0 overflow-hidden py-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl'>
+                  <div className='relative aspect-[16/10] w-full overflow-hidden'>
+                    <Image
+                      src={post.image}
+                      alt={post.title}
+                      fill
+                      priority={i < 3}
+                      loading={i < 3 ? undefined : "lazy"}
+                      sizes='(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 92vw'
+                      className='object-cover transition-transform duration-700 group-hover:scale-[1.06]'
+                    />
+                  </div>
+                  <CardHeader className='flex-1 py-3'>
+                    <CardDescription className='text-xs'>
+                      <time dateTime={new Date(post._creationTime).toISOString()}>
+                        {format(new Date(post._creationTime), "d MMM yyyy")}
+                      </time>
+                    </CardDescription>
+                    <CardTitle className='text-lg leading-snug'>
+                      <Link
+                        href={`/blog/${post.slug}`}
+                        className='after:absolute after:inset-0 group-hover:text-primary'>
+                        {post.title}
+                      </Link>
+                    </CardTitle>
+                    <p className='line-clamp-3 text-sm text-muted-foreground'>
+                      {richTextToPlain(post.content, 140)}
+                    </p>
+                    <span className='mt-2 inline-flex items-center gap-1 text-sm font-medium text-primary'>
+                      Read more
+                      <ArrowRight
+                        className='size-4 transition-transform group-hover:translate-x-0.5'
+                        aria-hidden
+                      />
+                    </span>
+                  </CardHeader>
+                </Card>
+              </RevealItem>
             ))}
-            <PaginationItem>
-              <PaginationNext
-                href={isNextDisabled ? undefined : "#"}
-                aria-disabled={isNextDisabled}
-                tabIndex={isNextDisabled ? -1 : 0}
-                className={
-                  isNextDisabled ? "pointer-events-none opacity-50" : undefined
-                }
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (!isNextDisabled) goToPage(currentPage + 1);
-                }}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
+          </RevealGroup>
+        )}
 
-      <div className='text-sm text-muted-foreground'>
-        Follow us on{" "}
-        <a
-          className='underline'
-          href='https://instagram.com/threescoreexquisite_cotravel'
-          target='_blank'
-          rel='noreferrer'>
-          Instagram
-        </a>{" "}
-        and{" "}
-        <a
-          className='underline'
-          href='https://facebook.com/Threescore Luxury Tours'
-          target='_blank'
-          rel='noreferrer'>
-          Facebook
-        </a>{" "}
-        for live travel updates.
-      </div>
-    </div>
+        {totalPages > 1 && (
+          // Real <a> links, so each page is crawlable and shareable.
+          <nav
+            aria-label='Blog pagination'
+            className='mt-12 flex items-center justify-center gap-2'>
+            <PageLink
+              href={hrefFor(page - 1)}
+              disabled={page === 1}
+              label='Previous page'>
+              Previous
+            </PageLink>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+              <Link
+                key={n}
+                href={hrefFor(n)}
+                aria-label={`Page ${n}`}
+                aria-current={n === page ? "page" : undefined}
+                className={
+                  n === page
+                    ? "inline-flex size-9 items-center justify-center rounded-md bg-primary text-sm font-medium text-primary-foreground"
+                    : "inline-flex size-9 items-center justify-center rounded-md text-sm hover:bg-accent"
+                }>
+                {n}
+              </Link>
+            ))}
+            <PageLink
+              href={hrefFor(page + 1)}
+              disabled={page === totalPages}
+              label='Next page'>
+              Next
+            </PageLink>
+          </nav>
+        )}
+
+        <p className='mt-14 text-sm text-muted-foreground'>
+          Follow us on{" "}
+          <a
+            className='text-primary underline underline-offset-4'
+            href={company.instagram}
+            target='_blank'
+            rel='noreferrer'>
+            Instagram
+          </a>{" "}
+          and{" "}
+          <a
+            className='text-primary underline underline-offset-4'
+            href={company.facebook}
+            target='_blank'
+            rel='noreferrer'>
+            Facebook
+          </a>{" "}
+          for live travel updates.
+        </p>
+      </Section>
+    </>
+  );
+}
+
+function PageLink({
+  href,
+  disabled,
+  label,
+  children,
+}: {
+  href: string;
+  disabled: boolean;
+  label: string;
+  children: React.ReactNode;
+}) {
+  if (disabled) {
+    return (
+      <span
+        aria-disabled='true'
+        className='inline-flex h-9 items-center rounded-md px-3 text-sm text-muted-foreground opacity-50'>
+        {children}
+      </span>
+    );
+  }
+  return (
+    <Link
+      href={href}
+      aria-label={label}
+      className='inline-flex h-9 items-center rounded-md px-3 text-sm hover:bg-accent'>
+      {children}
+    </Link>
   );
 }

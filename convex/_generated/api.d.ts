@@ -19,6 +19,7 @@ import type * as bookings from "../bookings.js";
 import type * as carousel from "../carousel.js";
 import type * as companyInfo from "../companyInfo.js";
 import type * as contact from "../contact.js";
+import type * as lib_auth from "../lib/auth.js";
 import type * as media from "../media.js";
 import type * as migrations from "../migrations.js";
 import type * as ourStrength from "../ourStrength.js";
@@ -48,6 +49,7 @@ declare const fullApi: ApiFromModules<{
   carousel: typeof carousel;
   companyInfo: typeof companyInfo;
   contact: typeof contact;
+  "lib/auth": typeof lib_auth;
   media: typeof media;
   migrations: typeof migrations;
   ourStrength: typeof ourStrength;

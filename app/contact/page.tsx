@@ -1,51 +1,34 @@
+import { BreadcrumbStructuredData } from "@/components/StructuredData";
 import ContactClient from "@/components/contact/ContactClient";
-import type { Metadata } from "next";
-import { Suspense } from "react";
+import { pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const dynamic = "force-static";
+export const revalidate = 3600;
+
+export const metadata = pageMetadata({
   title: "Contact Us",
   description:
-    "Get in touch with Threescore Tours for your East Africa adventure. Plan your safari, book travel services, or ask about custom itineraries. We're here to help create your perfect journey.",
+    "Get in touch to plan your East Africa adventure — safaris, flights, vehicles and custom itineraries. We usually reply within one business day.",
+  path: "/contact",
   keywords: [
     "contact Threescore Tours",
     "safari booking Kenya",
     "travel planning East Africa",
-    "tour operator contact",
+    "tour operator Nairobi",
     "custom travel itinerary",
-    "safari consultation",
-    "travel inquiry",
-    "book safari Kenya",
   ],
-  alternates: {
-    canonical: "/contact",
-  },
-  openGraph: {
-    title: "Contact Us — Threescore Tours",
-    description:
-      "Get in touch with Threescore Tours for your East Africa adventure. Plan your safari, book travel services, or create custom itineraries.",
-    type: "website",
-    images: [
-      {
-        url: "/opengraph-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Contact Threescore Tours for your East Africa adventure",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Contact Us — Threescore Tours",
-    description:
-      "Get in touch with Threescore Tours for your East Africa adventure. Plan your safari or book travel services.",
-    images: ["/opengraph-image.png"],
-  },
-};
+});
 
 export default function ContactPage() {
   return (
-    <Suspense>
+    <>
+      <BreadcrumbStructuredData
+        items={[
+          { name: "Home", url: "/" },
+          { name: "Contact", url: "/contact" },
+        ]}
+      />
       <ContactClient />
-    </Suspense>
+    </>
   );
 }

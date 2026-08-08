@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireAdmin } from "./lib/auth";
 
 export const getOurStrength = query({
   args: {},
@@ -19,6 +20,7 @@ export const setOurStrength = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const existing = await ctx.db.query("ourStrength").collect();
     const normalizedItems = args.items.map((i) => ({
       title: i.title.trim(),

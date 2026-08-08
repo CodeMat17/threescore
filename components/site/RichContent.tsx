@@ -1,39 +1,28 @@
-"use client";
-
-import { EditorContent, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import { useEffect } from "react";
+import { renderRichText } from "@/lib/rich-text";
+import { cn } from "@/lib/utils";
 
 type RichContentProps = {
   value?: string | Record<string, unknown>;
+  className?: string;
 };
 
-export function RichContent({ value }: RichContentProps) {
-  const initialContent =
-    typeof value === "string"
-      ? value
-      : value && typeof value === "object"
-        ? (value as Record<string, unknown>)
-        : undefined;
+/**
+ * Read-only renderer for CMS content.
+ *
+ * This used to mount the full Tiptap editor (`@tiptap/react` + `@tiptap/pm` +
+ * starter-kit, ~300kb) in `editable: false` mode purely to display HTML —
+ * shipping an entire editing engine to every public visitor. It now sanitizes
+ * on the server and renders plain markup styled by the `.rich-content` rules
+ * in `globals.css`, so nothing Tiptap-related reaches the browser.
+ */
+export function RichContent({ value, className }: RichContentProps) {
+  const html = renderRichText(value);
+  if (!html) return null;
 
-  const editor = useEditor({
-    extensions: [StarterKit],
-    content: initialContent ?? "",
-    immediatelyRender: false,
-    editable: false,
-    editorProps: {
-      attributes: {
-        class: "prose max-w-none dark:prose-invert",
-      },
-    },
-  });
-
-  useEffect(() => {
-    if (!editor) return;
-    if (typeof value === "string") editor.commands.setContent(value);
-    else if (value && typeof value === "object")
-      editor.commands.setContent(value as Record<string, unknown>);
-  }, [editor, value]);
-
-  return <EditorContent editor={editor} />;
+  return (
+    <div
+      className={cn("rich-content", className)}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
 }

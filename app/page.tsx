@@ -9,6 +9,13 @@ import { api } from "@/convex/_generated/api";
 import { preloadQuery } from "convex/nextjs";
 import type { Metadata } from "next";
 
+// Marketing content changes rarely. `force-static` opts out of the dynamic
+// rendering that Convex's `fetchQuery`/`preloadQuery` would otherwise trigger,
+// so the page is prerendered at build and refreshed in the background every
+// 5 minutes — a cached HTML response instead of a Convex round-trip per visit.
+export const dynamic = "force-static";
+export const revalidate = 300;
+
 export const metadata: Metadata = {
   title: "Home",
   description:
@@ -23,43 +30,32 @@ export const metadata: Metadata = {
     "beach holidays East Africa",
     "wildlife photography tours",
   ],
-  alternates: {
-    canonical: "/",
-  },
+  alternates: { canonical: "/" },
   openGraph: {
     title: "Threescore Tours — Celebrated Travels & Safaris",
     description:
       "Discover celebrated safaris, beach escapes, and adventure tours across Kenya, Tanzania, Uganda, and Dubai. Expert guides and unforgettable experiences.",
     type: "website",
-    images: [
-      {
-        url: "/opengraph-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Experience the best of East Africa with Threescore Tours",
-      },
-    ],
+    url: "/",
   },
   twitter: {
     card: "summary_large_image",
     title: "Threescore Tours — Celebrated Travels & Safaris",
     description:
       "Discover award-winning safaris, beach escapes, and adventure tours across Kenya, Tanzania, Uganda, and Dubai.",
-    images: ["/opengraph-image.png"],
   },
 };
 
 export default async function HomePage() {
   const preloadedSlides = await preloadQuery(api.carousel.getCarousel);
+
   return (
-    <div className='space-y-12 w-full mx-auto'>
-      <section className=' mx-auto'>
-        <HeroCarousel preloadedSlides={preloadedSlides} />
-      </section>
+    <>
+      <HeroCarousel preloadedSlides={preloadedSlides} />
       <ValueProps />
       <PopularDestinations />
       <ServicesOverview />
       <Testimonials />
-    </div>
+    </>
   );
 }

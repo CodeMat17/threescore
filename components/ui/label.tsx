@@ -13,10 +13,19 @@ export function Label({
 }: LabelProps) {
   return (
     <label
-      className={cn("text-sm font-medium text-foreground", className)}
+      className={cn(
+        "text-sm font-medium text-foreground select-none",
+        className
+      )}
       {...props}>
       {children}
-      {requiredMark ? <span className='ml-0.5 text-destructive'>*</span> : null}
+      {requiredMark ? (
+        // Decorative: the control carries `required`, which is what assistive
+        // tech announces. Reading "asterisk" aloud adds nothing.
+        <span aria-hidden className='ml-0.5 text-destructive'>
+          *
+        </span>
+      ) : null}
     </label>
   );
 }

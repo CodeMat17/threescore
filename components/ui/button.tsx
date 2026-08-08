@@ -20,11 +20,20 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
+        // Primary marketing CTA. Replaces the hand-rolled
+        // `bg-amber-600 text-white hover:bg-amber-100 hover:text-amber-600`
+        // that was pasted into several sections.
+        brand:
+          "bg-brand-600 text-white shadow-sm hover:bg-brand-700 active:bg-brand-700 dark:bg-brand-500 dark:text-brand-900 dark:hover:bg-brand-400",
+        // For use on top of photography — legible over any image.
+        onImage:
+          "bg-white/95 text-neutral-900 shadow-lg backdrop-blur-sm hover:bg-white",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
         sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
         lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
+        xl: "h-12 rounded-lg px-7 text-base has-[>svg]:px-5",
         icon: "size-9",
       },
     },

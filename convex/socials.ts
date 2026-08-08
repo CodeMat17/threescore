@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireAdmin } from "./lib/auth";
 
 export const getSocials = query({
   args: {},
@@ -15,6 +16,7 @@ export const setSocials = mutation({
     instagram: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const normalized = {
       facebook: args.facebook.trim(),
       instagram: args.instagram.trim(),

@@ -1,138 +1,135 @@
-"use client";
-
+import {
+  FacebookIcon,
+  InstagramIcon,
+  TikTokIcon,
+} from "@/components/ui/icons";
 import { api } from "@/convex/_generated/api";
 import { company } from "@/lib/data";
-import { useQuery } from "convex/react";
-import { Facebook, Instagram, Mail, MapPin, Phone } from "lucide-react";
+import { LEGAL_NAME } from "@/lib/site";
+import { fetchQuery } from "convex/nextjs";
+import { Mail, MapPin, Phone } from "lucide-react";
 import Link from "next/link";
 import Logo from "../Logo";
 
-// Custom TikTok icon component to match lucide-react style
-const TikTokIcon = ({ className }: { className?: string }) => (
-  <svg
-    xmlns='http://www.w3.org/2000/svg'
-    viewBox='0 0 24 24'
-    fill='none'
-    stroke='currentColor'
-    strokeWidth='2'
-    strokeLinecap='round'
-    strokeLinejoin='round'
-    className={className}>
-    <path d='M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5' />
-  </svg>
-);
+const QUICK_LINKS = [
+  { href: "/about", label: "About us" },
+  { href: "/packages", label: "Packages" },
+  { href: "/services", label: "Services" },
+  { href: "/blog", label: "Blog" },
+  { href: "/contact", label: "Contact" },
+];
 
-export function Footer() {
-  const info = useQuery(api.companyInfo.getCompanyInfo);
-  const socials = useQuery(api.socials.getSocials);
+/**
+ * Site footer. Converted from a client component with two `useQuery`
+ * subscriptions to a server render, so contact details and social links are in
+ * the HTML on every page — they carry real local-SEO weight (NAP consistency).
+ */
+export async function Footer() {
+  const [info, socials] = await Promise.all([
+    fetchQuery(api.companyInfo.getCompanyInfo).catch(() => null),
+    fetchQuery(api.socials.getSocials).catch(() => null),
+  ]);
+
   const address = info?.address ?? company.address;
   const phones = (info?.phones as string[] | undefined) ?? company.phones;
   const email = info?.email ?? company.email;
-  const instagramUrl = socials?.instagram || company.instagram;
-  const facebookUrl = socials?.facebook || company.facebook;
-  const tiktokUrl =
-    "https://www.tiktok.com/@threescore.exquis?_t=ZM-8z0RQx3qzOI&_r=1";
+
+  const socialLinks = [
+    {
+      href: socials?.instagram || company.instagram,
+      label: "Instagram",
+      Icon: InstagramIcon,
+    },
+    {
+      href: socials?.facebook || company.facebook,
+      label: "Facebook",
+      Icon: FacebookIcon,
+    },
+    { href: company.tiktok, label: "TikTok", Icon: TikTokIcon },
+  ];
 
   return (
-    <footer className='border-t bg-background'>
-      <div className=' mx-auto grid grid-cols-1 gap-8 px-4 md:px-8 lg:px-12 py-10 md:grid-cols-4'>
-        <div>
-          <Logo className='w-20 h-20' />{" "}
-          <p className='text-xl font-semibold'>
-            Threescore Exquisite Collections Ltd
+    <footer className='mt-24 border-t bg-muted/30'>
+      <div className='site-container grid grid-cols-1 gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4'>
+        <div className='sm:col-span-2 lg:col-span-1'>
+          <Logo className='size-16' />
+          <p className='mt-4 font-display text-lg font-semibold'>
+            {LEGAL_NAME}
           </p>
-          <p className='mt-2 text-s text-muted-foreground'>
-            Award‑winning travels and tours across Africa and beyond.
+          <p className='mt-2 max-w-xs text-sm text-muted-foreground'>
+            Award-winning travels and tours across Africa and beyond.
           </p>
         </div>
-        <div>
-          <div className='mb-2 font-semibold'>Quick Links</div>
-          <ul className='space-y-2 text-muted-foreground'>
-            <li>
-              <Link href='/about'>About Us</Link>
-            </li>
-            <li>
-              <Link href='/packages'>Packages</Link>
-            </li>
-            <li>
-              <Link href='/services'>Services</Link>
-            </li>
-            <li>
-              <Link href='/blog'>Blog</Link>
-            </li>
-            <li>
-              <Link href='/contact'>Contact</Link>
-            </li>
+
+        <nav aria-labelledby='footer-links'>
+          <h2 id='footer-links' className='font-display text-sm font-semibold'>
+            Quick links
+          </h2>
+          <ul className='mt-4 space-y-2.5 text-sm'>
+            {QUICK_LINKS.map((link) => (
+              <li key={link.href}>
+                <Link
+                  href={link.href}
+                  className='text-muted-foreground transition-colors hover:text-foreground'>
+                  {link.label}
+                </Link>
+              </li>
+            ))}
           </ul>
-        </div>
+        </nav>
+
         <div>
-          <div className='mb-2 font-semibold'>Contact</div>
-          <a
-            href={`https://www.google.com/maps?q=${encodeURIComponent(address)}`}
-            target='_blank'
-            rel='noreferrer'
-            className='flex items-center gap-2 text-sm text-muted-foreground hover:underline'>
-            <MapPin className='h-4 w-4' />
-            <span>{address}</span>
-          </a>
-          <ul className='mt-2 space-y-1 text-muted-foreground'>
+          <h2 className='font-display text-sm font-semibold'>Contact</h2>
+          <address className='mt-4 space-y-2.5 text-sm not-italic'>
+            <a
+              href={`https://www.google.com/maps?q=${encodeURIComponent(address)}`}
+              target='_blank'
+              rel='noreferrer'
+              className='flex items-start gap-2 text-muted-foreground transition-colors hover:text-foreground'>
+              <MapPin className='mt-0.5 size-4 shrink-0' aria-hidden />
+              <span>{address}</span>
+            </a>
             {phones.map((p) => (
-              <li key={p}>
+              <a
+                key={p}
+                href={`tel:${p}`}
+                className='flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground'>
+                <Phone className='size-4 shrink-0' aria-hidden />
+                <span>{p}</span>
+              </a>
+            ))}
+            <a
+              href={`mailto:${email}`}
+              className='flex items-center gap-2 break-all text-muted-foreground transition-colors hover:text-foreground'>
+              <Mail className='size-4 shrink-0' aria-hidden />
+              <span>{email}</span>
+            </a>
+          </address>
+        </div>
+
+        <div>
+          <h2 className='font-display text-sm font-semibold'>Follow along</h2>
+          <ul className='mt-4 space-y-2.5 text-sm'>
+            {socialLinks.map(({ href, label, Icon }) => (
+              <li key={label}>
                 <a
-                  href={`tel:${p}`}
-                  className='flex items-center gap-2 hover:underline'>
-                  <Phone className='h-4 w-4' />
-                  <span>{p}</span>
+                  href={href}
+                  target='_blank'
+                  rel='noreferrer'
+                  className='flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground'>
+                  <Icon className='size-4' />
+                  <span>{label}</span>
                 </a>
               </li>
             ))}
           </ul>
-          <a
-            href={`mailto:${email}`}
-            className='mt-1 flex items-center gap-2 text-sm text-muted-foreground hover:underline line-clamp-1'>
-            <Mail className='h-4 w-4 shrink-0' />
-            <span>{email}</span>
-          </a>
-        </div>
-        <div>
-          <div className='mb-2 font-semibold'>Social</div>
-          <ul className='space-y-2 text-muted-foreground'>
-            <li>
-              <a
-                href={instagramUrl}
-                target='_blank'
-                rel='noreferrer'
-                className='flex items-center gap-2 hover:underline'>
-                <Instagram className='h-4 w-4' />
-                <span>Instagram</span>
-              </a>
-            </li>
-            <li>
-              <a
-                href={facebookUrl}
-                target='_blank'
-                rel='noreferrer'
-                className='flex items-center gap-2 hover:underline'>
-                <Facebook className='h-4 w-4' />
-                <span>Facebook</span>
-              </a>
-            </li>
-            <li>
-              <a
-                href={tiktokUrl}
-                target='_blank'
-                rel='noreferrer'
-                className='flex items-center gap-2 hover:underline'>
-                <TikTokIcon className='h-4 w-4' />
-                <span>Tiktok</span>
-              </a>
-            </li>
-          </ul>
         </div>
       </div>
-      <div className='border-t py-4 text-center text-xs text-muted-foreground'>
-        © {new Date().getFullYear()} Threescore Exquisite Ltd Tours. All rights
-        reserved.
+
+      <div className='border-t py-6'>
+        <p className='site-container text-center text-xs text-muted-foreground'>
+          © {new Date().getFullYear()} {LEGAL_NAME}. All rights reserved.
+        </p>
       </div>
     </footer>
   );

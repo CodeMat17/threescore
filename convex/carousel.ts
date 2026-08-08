@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
+import { requireAdmin } from "./lib/auth";
 
 // Hero Carousel
 export const getCarousel = query({
@@ -17,6 +18,7 @@ export const addCarousel = mutation({
     imageId: v.id("_storage"),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const title = args.title.trim();
     const subtitle = args.subtitle.trim();
     if (!title) throw new Error("Title is required");
@@ -40,6 +42,7 @@ export const updateCarousel = mutation({
     imageId: v.id("_storage"),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const title = args.title.trim();
     const subtitle = args.subtitle.trim();
     if (!title) throw new Error("Title is required");
@@ -59,6 +62,7 @@ export const updateCarousel = mutation({
 export const deleteCarousel = mutation({
   args: { id: v.id("heroCarousel") },
   handler: async (ctx, { id }) => {
+    await requireAdmin(ctx);
     const doc: Doc<"heroCarousel"> | null = await ctx.db.get(id);
     if (doc?.imageId) {
       await ctx.storage.delete(doc.imageId as Id<"_storage">);

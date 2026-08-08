@@ -56,6 +56,7 @@ export const company = {
     /\s/g,
     "%20"
   ),
+  tiktok: "https://www.tiktok.com/@threescore.exquis?_t=ZM-8z0RQx3qzOI&_r=1",
   businessHours: [
     { label: "Mon–Fri", hours: "08:00 – 18:00" },
     { label: "Sat", hours: "09:00 – 16:00" },

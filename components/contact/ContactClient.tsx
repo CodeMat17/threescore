@@ -1,265 +1,178 @@
-"use client";
+import { Section } from "@/components/site/Section";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  FacebookIcon,
+  InstagramIcon,
+  TikTokIcon,
+} from "@/components/ui/icons";
 import { api } from "@/convex/_generated/api";
-import type { Doc } from "@/convex/_generated/dataModel";
 import { company } from "@/lib/data";
-import { useMutation, useQuery } from "convex/react";
-import { Clock, Facebook, Instagram, Mail, MapPin, Phone } from "lucide-react";
-import { useRouter } from "next/navigation";
-import * as React from "react";
-import { toast } from "sonner";
+import { fetchQuery } from "convex/nextjs";
+import { Clock, Mail, MapPin, Phone } from "lucide-react";
 
-// Custom TikTok icon component to match lucide-react style
-const TikTokIcon = ({ className }: { className?: string }) => (
-  <svg
-    xmlns='http://www.w3.org/2000/svg'
-    viewBox='0 0 24 24'
-    fill='none'
-    stroke='currentColor'
-    strokeWidth='2'
-    strokeLinecap='round'
-    strokeLinejoin='round'
-    className={className}>
-    <path d='M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5' />
-  </svg>
-);
+/**
+ * Contact page.
+ *
+ * The page shell and all contact details are server-rendered — they are the
+ * most SEO-relevant content on the site for local search (name, address,
+ * phone). There is no contact form — enquiries go straight to the company
+ * mailbox via mailto, phone or WhatsApp.
+ */
+export default async function ContactClient() {
+  const socials = await fetchQuery(api.socials.getSocials).catch(() => null);
 
-export default function ContactClient() {
-  type SocialsDoc = Doc<"socials">;
+  const address = company.address;
+  const instagram = socials?.instagram ?? company.instagram;
+  const facebook = socials?.facebook ?? company.facebook;
 
-  const socials = useQuery(api.socials.getSocials) as
-    | SocialsDoc
-    | null
-    | undefined;
-
-  const [fullName, setFullName] = React.useState("");
-  const [emailInput, setEmailInput] = React.useState("");
-  const [phoneInput, setPhoneInput] = React.useState("");
-  const [comment, setComment] = React.useState("");
-
-  const address: string = company.address;
-  const email: string = company.email;
-  const phones: string[] = [...company.phones];
-  const businessHours: Array<{ label: string; hours: string }> = [
-    ...company.businessHours,
+  const socialLinks = [
+    { href: instagram, label: "Instagram", Icon: InstagramIcon },
+    { href: facebook, label: "Facebook", Icon: FacebookIcon },
+    { href: company.tiktok, label: "TikTok", Icon: TikTokIcon },
   ];
-  const instagram: string = socials?.instagram ?? company.instagram;
-  const facebook: string = socials?.facebook ?? company.facebook;
-  const tiktok: string = "https://www.tiktok.com/@threescore.exquis?_t=ZM-8z0RQx3qzOI&_r=1";
-
-  const addContact = useMutation(api.contact.addContact);
-  const router = useRouter();
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      if (
-        !fullName.trim() ||
-        !emailInput.trim() ||
-        !phoneInput.trim() ||
-        !comment.trim()
-      ) {
-        toast.error("Please fill in required fields");
-        return;
-      }
-      await addContact({
-        fullName: fullName.trim(),
-        email: emailInput.trim(),
-        phone: phoneInput.trim(),
-        comment: comment.trim(),
-      });
-      router.push("/contact/success");
-    } catch (err) {
-      console.error(err);
-      toast.error("Submission failed");
-    }
-  };
 
   return (
-    <div className='container max-w-5xl mx-auto space-y-8 px-4 py-10'>
+    <Section size='loose'>
       <div className='max-w-2xl'>
-        <h1 className='text-3xl font-bold md:text-4xl'>Contact Us</h1>
-        <p className='mt-2 text-muted-foreground'>
-          We’ll get back to you shortly.
+        <p className='mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-primary'>
+          Get in touch
+        </p>
+        <h1 className='text-4xl font-semibold md:text-5xl'>
+          Let&apos;s plan your trip
+        </h1>
+        <p className='mt-4 text-lg text-muted-foreground'>
+          Email or call us with roughly what you have in mind. We usually reply
+          within one business day.
         </p>
       </div>
 
-      <div className='grid gap-8 lg:grid-cols-3'>
-        <Card className='lg:col-span-2'>
-          <CardHeader>
-            <CardTitle>Contact Form</CardTitle>
-          </CardHeader>
-          <CardContent className='space-y-6'>
-            <form onSubmit={handleSubmit} className='space-y-6'>
-              <div className='grid gap-4 md:grid-cols-2'>
-                <div className='space-y-1'>
-                  <Label htmlFor='name' requiredMark>
-                    Full Name
-                  </Label>
-                  <Input
-                    id='name'
-                    name='name'
-                    placeholder='Jane Doe'
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className='space-y-1'>
-                  <Label htmlFor='email' requiredMark>
-                    Email
-                  </Label>
-                  <Input
-                    id='email'
-                    name='email'
-                    type='email'
-                    placeholder='you@example.com'
-                    value={emailInput}
-                    onChange={(e) => setEmailInput(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className='space-y-1'>
-                  <Label htmlFor='phone' requiredMark>
-                    Phone Number
-                  </Label>
-                  <Input
-                    id='phone'
-                    name='phone'
-                    type='tel'
-                    placeholder='+254...'
-                    value={phoneInput}
-                    onChange={(e) => setPhoneInput(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className='space-y-1'>
-                <Label htmlFor='comments' requiredMark>
-                  Comment
-                </Label>
-                <Textarea
-                  id='comments'
-                  name='comments'
-                  placeholder='Tell us your request or message'
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className='flex justify-end gap-2'>
-                <Button type='submit'>Submit</Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-
+      <div className='mt-12 grid gap-8 lg:grid-cols-2'>
         <div className='space-y-6'>
           <Card>
             <CardHeader>
-              <CardTitle>Contact Details</CardTitle>
+              <CardTitle>Contact details</CardTitle>
             </CardHeader>
-            <CardContent className='space-y-4 text-sm text-muted-foreground'>
-              <div className='flex items-start gap-2'>
-                <MapPin className='mt-0.5 h-4 w-4 text-amber-600' />
+            <CardContent className='space-y-5 text-sm'>
+              <div className='flex items-start gap-3'>
+                <MapPin
+                  className='mt-0.5 size-4 shrink-0 text-primary'
+                  aria-hidden
+                />
                 <div>
-                  <span className='font-medium text-foreground'>Address:</span>{" "}
+                  <p className='font-medium'>Address</p>
                   <a
-                    className='underline'
                     href={`https://www.google.com/maps?q=${encodeURIComponent(address)}`}
                     target='_blank'
-                    rel='noreferrer'>
+                    rel='noreferrer'
+                    className='text-muted-foreground underline underline-offset-4 hover:text-foreground'>
                     {address}
                   </a>
                 </div>
               </div>
-              <div className='flex items-start gap-2'>
-                <Phone className='mt-0.5 h-4 w-4 text-amber-600' />
+
+              <div className='flex items-start gap-3'>
+                <Phone
+                  className='mt-0.5 size-4 shrink-0 text-primary'
+                  aria-hidden
+                />
                 <div>
-                  <span className='font-medium text-foreground'>
-                    Phone/WhatsApp:
-                  </span>{" "}
-                  <div className='space-x-2'>
-                    {phones.map((p) => (
-                      <a key={p} className='underline' href={`tel:${p}`}>
-                        {p}
-                      </a>
+                  <p className='font-medium'>Phone / WhatsApp</p>
+                  <ul className='text-muted-foreground'>
+                    {company.phones.map((p) => (
+                      <li key={p}>
+                        <a
+                          href={`tel:${p}`}
+                          className='underline underline-offset-4 hover:text-foreground'>
+                          {p}
+                        </a>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 </div>
               </div>
-              <div className='flex items-start gap-2'>
-                <Mail className='mt-0.5 h-4 w-4 text-amber-600' />
-                <div>
-                  <span className='font-medium text-foreground'>Email:</span>{" "}
-                  <a className='underline' href={`mailto:${email}`}>
-                    {email}
+
+              <div className='flex items-start gap-3'>
+                <Mail
+                  className='mt-0.5 size-4 shrink-0 text-primary'
+                  aria-hidden
+                />
+                <div className='min-w-0'>
+                  <p className='font-medium'>Email</p>
+                  <a
+                    href={`mailto:${company.email}`}
+                    className='break-all text-muted-foreground underline underline-offset-4 hover:text-foreground'>
+                    {company.email}
                   </a>
                 </div>
               </div>
-              <div className='flex items-center gap-3 pt-1'>
-                <a
-                  className='inline-flex items-center gap-1 underline'
-                  href={instagram}
-                  target='_blank'
-                  rel='noreferrer'>
-                  <Instagram className='h-4 w-4' /> Instagram
-                </a>
-                <span className='opacity-60'>•</span>
-                <a
-                  className='inline-flex items-center gap-1 underline'
-                  href={facebook}
-                  target='_blank'
-                  rel='noreferrer'>
-                  <Facebook className='h-4 w-4' /> Facebook
-                </a>
-                <span className='opacity-60'>•</span>
-                <a
-                  className='inline-flex items-center gap-1 underline'
-                  href={tiktok}
-                  target='_blank'
-                  rel='noreferrer'>
-                  <TikTokIcon className='h-4 w-4' /> Tiktok
-                </a>
-              </div>
-              <div className='pt-1'>
-                <div className='mb-1 flex items-center gap-2 font-medium text-foreground'>
-                  <Clock className='h-4 w-4 text-amber-600' />
-                  Business Hours
-                </div>
-                <ul className='space-y-0.5'>
-                  {businessHours.map((h) => (
-                    <li key={h.label}>
-                      {h.label}: {h.hours}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Our Location</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className='aspect-video w-full overflow-hidden rounded-md border'>
-                <iframe
-                  title='Threescore Tours Location'
-                  className='h-full w-full'
-                  src={`https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`}
-                  loading='lazy'
+              <div className='flex items-start gap-3'>
+                <Clock
+                  className='mt-0.5 size-4 shrink-0 text-primary'
+                  aria-hidden
                 />
+                <div>
+                  <p className='font-medium'>Business hours</p>
+                  <ul className='text-muted-foreground'>
+                    {company.businessHours.map((h) => (
+                      <li key={h.label}>
+                        {h.label}: {h.hours}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <div className='flex flex-wrap items-center gap-4 border-t pt-4'>
+                {socialLinks.map(({ href, label, Icon }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    target='_blank'
+                    rel='noreferrer'
+                    className='inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground'>
+                    <Icon className='size-4' />
+                    {label}
+                  </a>
+                ))}
               </div>
             </CardContent>
           </Card>
         </div>
+
+        <div className='space-y-6'>
+          <Card>
+            <CardHeader>
+              <CardTitle>Send us a message</CardTitle>
+            </CardHeader>
+            <CardContent className='space-y-4 text-sm text-muted-foreground'>
+              <p>
+                Email us with your dates, group size and the experience you have
+                in mind, and we&apos;ll come back with a tailored itinerary.
+              </p>
+              <Button asChild>
+                <a href={`mailto:${company.email}`}>
+                  <Mail className='size-4' aria-hidden />
+                  Email {company.email}
+                </a>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className='overflow-hidden py-0'>
+            <div className='aspect-video w-full'>
+              <iframe
+                title='Threescore Tours location on Google Maps'
+                className='size-full border-0'
+                src={`https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`}
+                loading='lazy'
+                referrerPolicy='no-referrer-when-downgrade'
+              />
+            </div>
+          </Card>
+        </div>
       </div>
-    </div>
+    </Section>
   );
 }

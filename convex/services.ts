@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireAdmin } from "./lib/auth";
 
 function slugify(input: string): string {
   return input
@@ -49,6 +50,7 @@ export const addServices = mutation({
     description: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const title = args.title.trim();
     const subtitle = args.subtitle.trim();
     const description = args.description.trim();
@@ -74,6 +76,7 @@ export const updateServices = mutation({
     description: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const title = args.title.trim();
     const subtitle = args.subtitle.trim();
     const description = args.description.trim();
@@ -96,6 +99,7 @@ export const updateServices = mutation({
 export const deleteServices = mutation({
   args: { id: v.id("services") },
   handler: async (ctx, { id }) => {
+    await requireAdmin(ctx);
     await ctx.db.delete(id);
     return true;
   },

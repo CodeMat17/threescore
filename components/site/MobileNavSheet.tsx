@@ -31,30 +31,41 @@ export function MobileNavSheet({ navItems, pathname }: MobileNavSheetProps) {
           <Menu className='size-4' />
         </Button>
       </SheetTrigger>
-      <SheetContent className='flex h-full w-[85vw] max-w-xs flex-col border-l bg-white dark:bg-slate-950 text-foreground'>
-        <SheetHeader className='flex items-center justify-between'>
+      {/* `bg-background` rather than `bg-white dark:bg-slate-950`, so the
+          drawer follows the theme tokens like everything else. */}
+      <SheetContent
+        side='right'
+        className='flex h-full w-[85vw] max-w-xs flex-col border-l bg-background text-foreground'>
+        <SheetHeader className='flex items-center justify-between space-y-0'>
           <SheetTitle>Menu</SheetTitle>
           <SheetClose
             aria-label='Close menu'
-            className='inline-flex h-9 w-9 items-center justify-center rounded-md border bg-background text-foreground/80 hover:bg-accent hover:text-accent-foreground'>
-            <X className='size-4 text-red-500' />
+            className='inline-flex size-9 items-center justify-center rounded-md border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground'>
+            <X className='size-4' />
           </SheetClose>
         </SheetHeader>
-        <nav className='flex flex-1 flex-col gap-1 p-2'>
-          {navItems.map((item) => (
-            <SheetClose key={item.href} asChild>
-              <Link
-                href={item.href}
-                className={cn(
-                  "rounded-md border bg-background px-3 py-2 text-sm font-medium text-foreground",
-                  pathname === item.href
-                    ? "bg-accent text-accent-foreground"
-                    : "text-foreground/80 hover:bg-accent hover:text-accent-foreground"
-                )}>
-                {item.label}
-              </Link>
-            </SheetClose>
-          ))}
+        <nav aria-label='Mobile' className='flex flex-1 flex-col gap-1 p-2'>
+          {navItems.map((item) => {
+            const active =
+              item.href === "/"
+                ? pathname === "/"
+                : pathname.startsWith(item.href);
+            return (
+              <SheetClose key={item.href} asChild>
+                <Link
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
+                    active
+                      ? "bg-accent text-accent-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  )}>
+                  {item.label}
+                </Link>
+              </SheetClose>
+            );
+          })}
         </nav>
       </SheetContent>
     </Sheet>

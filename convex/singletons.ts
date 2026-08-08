@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireAdmin } from "./lib/auth";
 
 export const get = query({
   args: { key: v.string() },
@@ -14,6 +15,7 @@ export const get = query({
 export const set = mutation({
   args: { key: v.string(), data: v.any() },
   handler: async (ctx, { key, data }) => {
+    await requireAdmin(ctx);
     const existing = await ctx.db
       .query("singletons")
       .withIndex("by_key", (q) => q.eq("key", key))

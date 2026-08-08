@@ -2,6 +2,7 @@
 import { cn } from "@/lib/utils";
 import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
+import { createPortal } from "react-dom";
 
 type SheetContextValue = {
   open: boolean;
@@ -98,7 +99,10 @@ export function SheetContent({
   React.useEffect(() => setMounted(true), []);
   if (!ctx) return null;
 
-  if (!ctx.open && !mounted) return null;
+  // Rendered into the body: an ancestor with a filter/backdrop-filter (the
+  // sticky blurred header) would otherwise become the containing block for
+  // these fixed elements and trap the panel inside it.
+  if (!mounted) return null;
 
   const sideClass: Record<NonNullable<SheetContentProps["side"]>, string> = {
     left: "left-0 top-0 h-full w-10/12 max-w-sm -translate-x-full data-[open=true]:translate-x-0",
@@ -109,7 +113,7 @@ export function SheetContent({
       "left-0 bottom-0 w-full translate-y-full data-[open=true]:translate-y-0",
   };
 
-  return (
+  return createPortal(
     <>
       {/* Overlay */}
       <div
@@ -134,7 +138,8 @@ export function SheetContent({
         {...props}>
         {children}
       </div>
-    </>
+    </>,
+    document.body
   );
 }
 

@@ -8,11 +8,26 @@ import {
   WebSiteStructuredData,
 } from "@/components/StructuredData";
 import { WhatsAppButton } from "@/components/ui/whatsapp-button";
-import type { Metadata } from "next";
+import { SITE_URL } from "@/lib/site";
+import type { Metadata, Viewport } from "next";
+import { Nunito } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 
-// Using system fonts to avoid network fetch during build
+// next/font self-hosts these at build time — no runtime request to Google.
+const nunito = Nunito({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-body",
+});
+
+
+
+// Origin serving Convex-hosted imagery; warmed early so non-LCP slides and
+// package photos don't pay for DNS + TLS on first paint.
+const convexOrigin = process.env.NEXT_PUBLIC_CONVEX_URL
+  ? new URL(process.env.NEXT_PUBLIC_CONVEX_URL).origin
+  : undefined;
 
 export const metadata: Metadata = {
   title: {
@@ -21,9 +36,7 @@ export const metadata: Metadata = {
   },
   description:
     "Threescore Exquisite Ltd Tours crafts unforgettable safaris, beach escapes, and international trips across Kenya, East Africa, and beyond.",
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://threescoretours.com"
-  ),
+  metadataBase: new URL(SITE_URL),
   keywords: [
     "Kenya safaris",
     "Tanzania tours",
@@ -48,14 +61,7 @@ export const metadata: Metadata = {
     description:
       "Experience unforgettable safaris, stunning beach escapes, and cultural adventures across Kenya, Tanzania, Uganda, and Dubai with East Africa's premier tour operator.",
     siteName: "Threescore Tours",
-    images: [
-      {
-        url: "/opengraph-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Threescore Tours - Award-winning safaris and travel experiences",
-      },
-    ],
+    // Images come from the `app/opengraph-image.tsx` file convention.
     locale: "en_US",
     type: "website",
   },
@@ -64,7 +70,6 @@ export const metadata: Metadata = {
     title: "Threescore Tours — Celebrated Travels & Safaris",
     description:
       "Experience unforgettable safaris, stunning beach escapes, and cultural adventures across Kenya, Tanzania, Uganda, and Dubai.",
-    images: ["/opengraph-image.png"],
     creator: "@threescoreexquisite_cotravel",
   },
   robots: {
@@ -97,21 +102,19 @@ export const metadata: Metadata = {
   },
   classification: "Business",
   referrer: "origin-when-cross-origin",
-  colorScheme: "light dark",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 5,
-  },
-
   applicationName: "Threescore Tours",
-  generator: "Next.js",
 };
 
-export const viewport = {
+// `colorScheme` and `viewport` belong here, not in the `metadata` export —
+// Next 15 ignores them there.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  // Not capped: pinch-zoom must stay available (WCAG 1.4.4).
+  colorScheme: "light dark",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+    { media: "(prefers-color-scheme: light)", color: "#fdfcfa" },
+    { media: "(prefers-color-scheme: dark)", color: "#14110f" },
   ],
 };
 
@@ -121,15 +124,33 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang='en' suppressHydrationWarning>
-      <body className={`antialiased`}>
+    <html
+      lang='en'
+      suppressHydrationWarning
+      className={`${nunito.variable}`}>
+      <head>
+        {convexOrigin && (
+          <>
+            <link rel='preconnect' href={convexOrigin} crossOrigin='' />
+            <link rel='dns-prefetch' href={convexOrigin} />
+          </>
+        )}
+      </head>
+      <body className='antialiased'>
+        <a
+          href='#main'
+          className='sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:shadow-lg focus:ring-2 focus:ring-ring'>
+          Skip to content
+        </a>
         <OrganizationStructuredData />
         <WebSiteStructuredData />
         <ConvexProviderClient>
           <ThemeProvider attribute='class' defaultTheme='system' enableSystem>
             <CulturalPattern />
             <Header />
-            <main className='min-h-[70vh]'>{children}</main>
+            <main id='main' className='min-h-[70vh]'>
+              {children}
+            </main>
             <Footer />
             <AppToaster />
             <WhatsAppButton

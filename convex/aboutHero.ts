@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireAdmin } from "./lib/auth";
 
 export const getAboutHero = query({
   args: {},
@@ -16,6 +17,7 @@ export const setAboutHero = mutation({
     imageId: v.id("_storage"),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const image = await ctx.storage.getUrl(args.imageId);
     if (!image) throw new Error("Failed to resolve image URL");
 

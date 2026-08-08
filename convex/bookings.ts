@@ -1,12 +1,15 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireAdmin } from "./lib/auth";
 
+// Bookings contain customer personal data — admin only.
 export const getBookings = query({
   args: {
     email: v.optional(v.string()),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, { email, limit }) => {
+    await requireAdmin(ctx);
     let q = ctx.db.query("bookings").order("desc");
     if (email) {
       q = ctx.db
@@ -56,6 +59,7 @@ export const addBookings = mutation({
 export const deleteBookings = mutation({
   args: { id: v.id("bookings") },
   handler: async (ctx, { id }) => {
+    await requireAdmin(ctx);
     await ctx.db.delete(id);
     return true;
   },

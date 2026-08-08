@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Card,
   CardContent,
@@ -9,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -25,14 +25,72 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/convex/_generated/api";
+import {
+  fieldProps,
+  toNumber,
+  validate,
+  validators,
+  type FieldErrors,
+} from "@/lib/validation";
 import { useMutation } from "convex/react";
-import { ChevronDownIcon } from "lucide-react";
+import { ChevronDownIcon, Loader2 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { DateRange } from "react-day-picker";
 import { toast } from "sonner";
 
-type Travelers = { adults: number; teens: number; kids: number };
+// react-day-picker is ~40kb and only needed once the date popover opens.
+const Calendar = dynamic(
+  () => import("@/components/ui/calendar").then((m) => m.Calendar),
+  {
+    ssr: false,
+    loading: () => (
+      <div className='h-72 w-[20rem] animate-pulse rounded-lg bg-muted' />
+    ),
+  }
+);
+
+type BookingValues = {
+  fullName: string;
+  email: string;
+  phone: string;
+  nationality: string;
+  passport: string;
+  rooms: number;
+  adults: number;
+  teens: number;
+  kids: number;
+  comments: string;
+};
+
+const ROOM_TYPES = [
+  { value: "single", label: "Single" },
+  { value: "double", label: "Double" },
+  { value: "twin", label: "Twin" },
+  { value: "family", label: "Family" },
+];
+
+const MEAL_PLANS = [
+  { value: "bb", label: "Bed & Breakfast" },
+  { value: "half-board", label: "Half-board" },
+  { value: "full-board", label: "Full-board" },
+  { value: "all-inclusive", label: "All-inclusive" },
+];
+
+const RULES = {
+  fullName: [
+    validators.required("Full name"),
+    validators.minLength(2, "Full name"),
+  ],
+  email: [validators.required("Email"), validators.email],
+  phone: [validators.required("Phone number"), validators.phone],
+  rooms: [validators.range(1, 30, "Rooms")],
+  adults: [validators.range(1, 40, "Adults")],
+  teens: [validators.range(0, 40, "Teens")],
+  kids: [validators.range(0, 40, "Children")],
+  comments: [validators.maxLength(2000, "Notes")],
+} as const;
 
 export default function BookingForm({
   pkg,
@@ -41,27 +99,38 @@ export default function BookingForm({
   pkg: string;
   priceFromUsd?: number;
 }) {
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [nationality, setNationality] = useState("");
-  const [passport, setPassport] = useState("");
-  const [date, setDate] = useState<DateRange | undefined>(undefined);
-  const [rooms, setRooms] = useState(1);
-  const [roomType, setRoomType] = useState<string | undefined>("double");
-  const [mealPlan, setMealPlan] = useState<string | undefined>("full-board");
-  const [travelers, setTravelers] = useState<Travelers>({
+  const [values, setValues] = useState<BookingValues>({
+    fullName: "",
+    email: "",
+    phone: "",
+    nationality: "",
+    passport: "",
+    rooms: 1,
     adults: 2,
     teens: 0,
     kids: 0,
+    comments: "",
   });
-  const [comments, setComments] = useState("");
+  const [date, setDate] = useState<DateRange | undefined>();
+  const [roomType, setRoomType] = useState("double");
+  const [mealPlan, setMealPlan] = useState("full-board");
+  const [errors, setErrors] = useState<
+    FieldErrors<BookingValues> & { date?: string }
+  >({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const addBooking = useMutation(api.bookings.addBookings);
   const router = useRouter();
 
-  const [open, setOpen] = useState(false);
+  const set = <K extends keyof BookingValues>(
+    key: K,
+    value: BookingValues[K]
+  ) => {
+    setValues((v) => ({ ...v, [key]: value }));
+    setErrors((e) => ({ ...e, [key]: undefined }));
+  };
+
   const formatDate = (d?: Date) =>
     d
       ? d.toLocaleDateString(undefined, {
@@ -73,251 +142,304 @@ export default function BookingForm({
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
+    const found: FieldErrors<BookingValues> & { date?: string } = validate(
+      values,
+      RULES as never
+    );
+
     if (!date?.from || !date?.to) {
-      toast.error("Please select a start and end date.");
+      found.date = "Select both a start and an end date";
+    } else if (date.to <= date.from) {
+      found.date = "The return date must be after the departure date";
+    } else if (date.from < new Date(new Date().toDateString())) {
+      found.date = "The departure date can't be in the past";
+    }
+
+    // Cross-field: you cannot put more travellers in fewer rooms than allowed.
+    const guests = values.adults + values.teens + values.kids;
+    if (!found.rooms && guests > values.rooms * 4) {
+      found.rooms = `${guests} travellers need at least ${Math.ceil(guests / 4)} rooms`;
+    }
+
+    setErrors(found);
+    if (Object.keys(found).length > 0) {
+      const firstKey = Object.keys(found)[0];
+      document.getElementById(firstKey)?.focus();
+      toast.error("Please check the highlighted fields.");
       return;
     }
+
+    setIsSubmitting(true);
     try {
-      setIsSubmitting(true);
-      const fromDate = date.from.getTime();
-      const toDate = date.to.getTime();
       await addBooking({
         packageTitle: pkg,
         priceFromUsd,
-        fullName,
-        email,
-        phone,
-        nationality: nationality || undefined,
-        passport: passport || undefined,
-        fromDate,
-        toDate,
-        rooms,
-        roomType: roomType || undefined,
-        mealPlan: mealPlan || undefined,
-        travelers,
-        comments: comments || undefined,
+        fullName: values.fullName.trim(),
+        email: values.email.trim(),
+        phone: values.phone.trim(),
+        nationality: values.nationality.trim() || undefined,
+        passport: values.passport.trim() || undefined,
+        fromDate: date!.from!.getTime(),
+        toDate: date!.to!.getTime(),
+        rooms: values.rooms,
+        roomType,
+        mealPlan,
+        travelers: {
+          adults: values.adults,
+          teens: values.teens,
+          kids: values.kids,
+        },
+        comments: values.comments.trim() || undefined,
       });
-      toast.success("Booking submitted. We'll contact you shortly.");
-      const nameForThanks = fullName.trim();
-      // Reset form fields
-      setFullName("");
-      setEmail("");
-      setPhone("");
-      setNationality("");
-      setPassport("");
-      setDate(undefined);
-      setRooms(1);
-      setRoomType("double");
-      setMealPlan("full-board");
-      setTravelers({ adults: 2, teens: 0, kids: 0 });
-      setComments("");
-      setOpen(false);
-      router.push(`/thank-you?name=${encodeURIComponent(nameForThanks)}`);
+      router.push(
+        `/thank-you?name=${encodeURIComponent(values.fullName.trim())}`
+      );
     } catch (err) {
       console.error(err);
       toast.error("Failed to submit booking. Please try again.");
-    } finally {
       setIsSubmitting(false);
     }
   };
 
+  /** Numeric field: an emptied input no longer submits NaN. */
+  const numberField = (
+    key: "rooms" | "adults" | "teens" | "kids",
+    label: string,
+    min: number
+  ) => (
+    <div>
+      <Label htmlFor={key} requiredMark={min > 0}>
+        {label}
+      </Label>
+      <Input
+        {...fieldProps(key, errors[key])}
+        type='number'
+        inputMode='numeric'
+        min={min}
+        max={40}
+        value={values[key]}
+        onChange={(e) => set(key, toNumber(e.target.value, min))}
+        className='mt-1.5'
+        required={min > 0}
+      />
+      <FieldError id={key} message={errors[key]} />
+    </div>
+  );
+
   return (
     <Card>
-      <form onSubmit={onSubmit}>
+      <form onSubmit={onSubmit} noValidate>
         <CardHeader>
-          <CardTitle>Booking Details</CardTitle>
+          <CardTitle>Booking details</CardTitle>
+          {/* CardDescription renders a <p>; the previous version nested a
+              <Label> and another <p> inside it, producing invalid HTML. */}
           <CardDescription>
-            <Label>Description</Label>
-            <p>{pkg}</p>
-            {typeof priceFromUsd === "number" && (
-              <p>From ${priceFromUsd.toLocaleString()}</p>
-            )}
+            {pkg}
+            {typeof priceFromUsd === "number" &&
+              ` — from $${priceFromUsd.toLocaleString("en-US")} per person`}
           </CardDescription>
         </CardHeader>
-        <CardContent className='space-y-6'>
-          <div className='grid gap-4 md:grid-cols-2'>
-            <div className='space-y-1'>
-              <Label htmlFor='fullName' requiredMark>
-                Full Name
-              </Label>
-              <Input
-                id='fullName'
-                name='fullName'
-                placeholder='Jane Doe'
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
-              />
-            </div>
-            <div className='space-y-1'>
-              <Label htmlFor='email' requiredMark>
-                Email
-              </Label>
-              <Input
-                id='email'
-                name='email'
-                type='email'
-                placeholder='you@example.com'
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className='space-y-1'>
-              <Label htmlFor='phone' requiredMark>
-                Phone Number
-              </Label>
-              <Input
-                id='phone'
-                name='phone'
-                type='tel'
-                placeholder='+254...'
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                required
-              />
-            </div>
-            <div className='space-y-1'>
-              <Label htmlFor='nationality'>Nationality</Label>
-              <Input
-                id='nationality'
-                name='nationality'
-                placeholder='Country of citizenship'
-                value={nationality}
-                onChange={(e) => setNationality(e.target.value)}
-              />
-            </div>
-            <div className='space-y-1'>
-              <Label htmlFor='passport'>Passport No. (if applicable)</Label>
-              <Input
-                id='passport'
-                name='passport'
-                placeholder='XXXXXXXX'
-                value={passport}
-                onChange={(e) => setPassport(e.target.value)}
-              />
-            </div>
-          </div>
 
-          <div className='grid gap-4 md:grid-cols-2'>
-            <div className='flex flex-col gap-1'>
-              <Label htmlFor='date' className='px-1' requiredMark>
-                Date (from - to)
+        <CardContent className='space-y-8'>
+          <fieldset className='space-y-5'>
+            <legend className='text-sm font-semibold'>Who&apos;s booking</legend>
+            <div className='grid gap-5 md:grid-cols-2'>
+              <div>
+                <Label htmlFor='fullName' requiredMark>
+                  Full name
+                </Label>
+                <Input
+                  {...fieldProps("fullName", errors.fullName)}
+                  autoComplete='name'
+                  placeholder='Jane Doe'
+                  value={values.fullName}
+                  onChange={(e) => set("fullName", e.target.value)}
+                  className='mt-1.5'
+                  required
+                />
+                <FieldError id='fullName' message={errors.fullName} />
+              </div>
+
+              <div>
+                <Label htmlFor='email' requiredMark>
+                  Email
+                </Label>
+                <Input
+                  {...fieldProps("email", errors.email)}
+                  type='email'
+                  inputMode='email'
+                  autoComplete='email'
+                  placeholder='you@example.com'
+                  value={values.email}
+                  onChange={(e) => set("email", e.target.value)}
+                  className='mt-1.5'
+                  required
+                />
+                <FieldError id='email' message={errors.email} />
+              </div>
+
+              <div>
+                <Label htmlFor='phone' requiredMark>
+                  Phone number
+                </Label>
+                <Input
+                  {...fieldProps("phone", errors.phone)}
+                  type='tel'
+                  inputMode='tel'
+                  autoComplete='tel'
+                  placeholder='+254 700 000 000'
+                  value={values.phone}
+                  onChange={(e) => set("phone", e.target.value)}
+                  className='mt-1.5'
+                  required
+                />
+                <FieldError id='phone' message={errors.phone} />
+              </div>
+
+              <div>
+                <Label htmlFor='nationality'>Nationality</Label>
+                <Input
+                  id='nationality'
+                  autoComplete='country-name'
+                  placeholder='Country of citizenship'
+                  value={values.nationality}
+                  onChange={(e) => set("nationality", e.target.value)}
+                  className='mt-1.5'
+                />
+              </div>
+
+              <div className='md:col-span-2'>
+                <Label htmlFor='passport'>Passport number (if applicable)</Label>
+                <Input
+                  id='passport'
+                  placeholder='XXXXXXXX'
+                  value={values.passport}
+                  onChange={(e) => set("passport", e.target.value)}
+                  className='mt-1.5'
+                />
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset className='space-y-5'>
+            <legend className='text-sm font-semibold'>Travel dates</legend>
+            <div className='max-w-md'>
+              <Label htmlFor='date' requiredMark>
+                Departure — return
               </Label>
               <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
                   <Button
+                    type='button'
                     variant='outline'
                     id='date'
-                    className='w-full justify-between font-normal'>
+                    aria-invalid={errors.date ? true : undefined}
+                    aria-describedby={errors.date ? "date-error" : undefined}
+                    className='mt-1.5 w-full justify-between font-normal'>
                     {date?.from
-                      ? `${formatDate(date.from)}${
-                          date?.to ? ` — ${formatDate(date.to)}` : ""
-                        }`
+                      ? `${formatDate(date.from)}${date.to ? ` — ${formatDate(date.to)}` : ""}`
                       : "Select dates"}
-                    <ChevronDownIcon />
+                    <ChevronDownIcon aria-hidden />
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className='w-auto overflow-hidden p-0'>
                   <Calendar
                     mode='range'
-                    defaultMonth={date?.from || new Date()}
-                    numberOfMonths={2}
+                    defaultMonth={date?.from ?? new Date()}
+                    numberOfMonths={1}
                     selected={date}
+                    disabled={{ before: new Date() }}
                     captionLayout='dropdown'
-                    onSelect={(range) => setDate(range)}
+                    onSelect={(range) => {
+                      setDate(range);
+                      setErrors((e) => ({ ...e, date: undefined }));
+                    }}
                     className='rounded-lg border shadow-sm'
                   />
                 </PopoverContent>
               </Popover>
+              <FieldError id='date' message={errors.date} />
             </div>
-          </div>
+          </fieldset>
 
-          <div className='grid gap-4 md:grid-cols-3'>
-            {(["adults", "teens", "kids"] as const).map((k) => (
-              <div key={k} className='space-y-1'>
-                <Label htmlFor={`trav-${k}`} requiredMark={k === "adults"}>
-                  {`Number of ${k}`}
-                </Label>
-                <Input
-                  id={`trav-${k}`}
-                  type='number'
-                  min={k === "adults" ? 1 : 0}
-                  value={travelers[k]}
-                  onChange={(e) =>
-                    setTravelers((t) => ({ ...t, [k]: Number(e.target.value) }))
-                  }
-                  required={k === "adults"}
-                />
+          <fieldset className='space-y-5'>
+            <legend className='text-sm font-semibold'>
+              Travellers and rooms
+            </legend>
+            <div className='grid gap-5 sm:grid-cols-3'>
+              {numberField("adults", "Adults", 1)}
+              {numberField("teens", "Teens", 0)}
+              {numberField("kids", "Children", 0)}
+            </div>
+
+            <div className='grid gap-5 sm:grid-cols-3'>
+              {numberField("rooms", "Rooms", 1)}
+
+              <div>
+                {/* These Selects previously had a bare <Label> with no
+                    `htmlFor`, leaving them with no accessible name at all. */}
+                <Label htmlFor='roomType'>Room type</Label>
+                <SelectRoot value={roomType} onValueChange={setRoomType}>
+                  <SelectTrigger id='roomType' className='mt-1.5 w-full'>
+                    <SelectValue placeholder='Select room type' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ROOM_TYPES.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </SelectRoot>
               </div>
-            ))}
-          </div>
 
-          <div className='grid gap-4 md:grid-cols-3'>
-            <div className='space-y-1'>
-              <Label htmlFor='rooms' requiredMark>
-                Rooms
-              </Label>
-              <Input
-                id='rooms'
-                type='number'
-                min={1}
-                value={rooms}
-                onChange={(e) => setRooms(Number(e.target.value))}
-                required
-              />
+              <div>
+                <Label htmlFor='mealPlan'>Meal plan</Label>
+                <SelectRoot value={mealPlan} onValueChange={setMealPlan}>
+                  <SelectTrigger id='mealPlan' className='mt-1.5 w-full'>
+                    <SelectValue placeholder='Select meal plan' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MEAL_PLANS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </SelectRoot>
+              </div>
             </div>
-            <div className='space-y-1'>
-              <Label>Room Type</Label>
-              <SelectRoot
-                value={roomType}
-                onValueChange={(v) => setRoomType(v)}>
-                <SelectTrigger>
-                  <SelectValue placeholder='Select room type' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='single'>Single</SelectItem>
-                  <SelectItem value='double'>Double</SelectItem>
-                  <SelectItem value='twin'>Twin</SelectItem>
-                  <SelectItem value='family'>Family</SelectItem>
-                </SelectContent>
-              </SelectRoot>
-            </div>
-            <div className='space-y-1'>
-              <Label>Meal Plan</Label>
-              <SelectRoot value={mealPlan} onValueChange={setMealPlan}>
-                <SelectTrigger>
-                  <SelectValue placeholder='Select meal plan' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='bb'>Bed & Breakfast</SelectItem>
-                  <SelectItem value='half-board'>Half-board</SelectItem>
-                  <SelectItem value='full-board'>Full-board</SelectItem>
-                  <SelectItem value='all-inclusive'>All-inclusive</SelectItem>
-                </SelectContent>
-              </SelectRoot>
-            </div>
-          </div>
+          </fieldset>
 
-          <div className='space-y-1'>
-            <Label htmlFor='comments'>Special Requests / Notes</Label>
+          <div>
+            <Label htmlFor='comments'>Special requests or notes</Label>
             <Textarea
-              id='comments'
-              name='comments'
+              {...fieldProps("comments", errors.comments)}
+              rows={4}
               placeholder='Dietary needs, accessibility, celebrations, etc.'
-              value={comments}
-              onChange={(e) => setComments(e.target.value)}
+              value={values.comments}
+              onChange={(e) => set("comments", e.target.value)}
+              className='mt-1.5'
             />
+            <FieldError id='comments' message={errors.comments} />
           </div>
 
-          <div className='flex justify-end gap-2'>
-            <Button type='submit' disabled={isSubmitting}>
-              {isSubmitting ? "Submitting..." : "Confirm Booking"}
+          <div className='flex flex-wrap gap-3'>
+            <Button
+              type='submit'
+              size='lg'
+              variant='brand'
+              disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className='animate-spin' aria-hidden />}
+              {isSubmitting ? "Submitting…" : "Confirm booking"}
             </Button>
             <Button
               type='button'
-              variant='secondary'
-              onClick={() => history.back()}>
+              size='lg'
+              variant='outline'
+              onClick={() => router.back()}>
               Cancel
             </Button>
           </div>

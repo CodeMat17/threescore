@@ -2,6 +2,7 @@ import { action, internalMutation, internalQuery, mutation } from "./_generated/
 import { makeFunctionReference } from "convex/server";
 import { v } from "convex/values";
 import { Doc, Id } from "./_generated/dataModel";
+import { requireAdmin } from "./lib/auth";
 
 // ─── Shared types ─────────────────────────────────────────────────────────────
 
@@ -126,6 +127,7 @@ export const exportAll = action({
     tables: AllTables;
     storageUrls: Record<string, string>;
   }> => {
+    await requireAdmin(ctx);
     const tables = await ctx.runQuery(getAllDataRef);
 
     // Collect every unique storage ID referenced across all tables
@@ -255,6 +257,7 @@ export const importData = internalMutation({
 export const importAll = action({
   args: { exportData: v.any() },
   handler: async (ctx, { exportData }) => {
+    await requireAdmin(ctx);
     const { tables, storageUrls } = exportData as {
       tables: AllTables;
       storageUrls: Record<string, string>;
@@ -322,6 +325,7 @@ export const importAll = action({
  */
 export const fixImageUrls = mutation({
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     let fixed = 0;
 
     // packages

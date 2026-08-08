@@ -1,209 +1,140 @@
-"use client";
-
+import { BreadcrumbStructuredData } from "@/components/StructuredData";
+import { DestinationFilter } from "@/components/site/Filters";
+import { Reveal, RevealGroup, RevealItem } from "@/components/site/Reveal";
+import { Section } from "@/components/site/Section";
+import { PackageCard } from "@/components/site/cards";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { api } from "@/convex/_generated/api";
-import { useQuery } from "convex/react";
-import Image from "next/image";
+import { pageMetadata } from "@/lib/metadata";
+import { LEGAL_NAME, absoluteUrl } from "@/lib/site";
+import { fetchQuery } from "convex/nextjs";
 import Link from "next/link";
-import * as React from "react";
 
-export default function PackagesPage() {
-  const packages = useQuery(api.packages.getPackages);
-  const [selectedLocation, setSelectedLocation] = React.useState<
-    string | undefined
-  >(undefined);
+export const revalidate = 300;
 
-  const destinationOptions = React.useMemo(() => {
-    if (packages === undefined) return [] as string[];
-    return Array.from(new Set(packages.map((p) => p.destination))).sort();
-  }, [packages]);
+export const metadata = pageMetadata({
+  title: "Tour Packages",
+  description:
+    "Curated safari, beach and city packages across Kenya, Tanzania, Uganda and Dubai — costed, planned and supported by our Nairobi team.",
+  path: "/packages",
+  keywords: [
+    "Kenya safari packages",
+    "Tanzania tour packages",
+    "Uganda gorilla trekking",
+    "Dubai holiday packages",
+    "Maasai Mara safari",
+    "East Africa tours",
+  ],
+});
 
-  const filteredPackages = React.useMemo(() => {
-    if (packages === undefined) return undefined;
-    if (!selectedLocation) return packages;
-    return packages.filter((p) => p.destination === selectedLocation);
-  }, [packages, selectedLocation]);
+export default async function PackagesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ destination?: string }>;
+}) {
+  const { destination } = await searchParams;
+  const packages = await fetchQuery(api.packages.getPackages).catch(() => []);
+
+  const destinations = Array.from(
+    new Set(packages.map((p) => p.destination))
+  ).sort();
+
+  // Filtering happens here, in the server render, so the browser never
+  // receives the full package list just to narrow it down.
+  const filtered = destination
+    ? packages.filter((p) => p.destination === destination)
+    : packages;
 
   return (
-    <div className=' mx-auto space-y-8 px-4 md:px-8 lg:px-12 py-10'>
-      <div className='max-w-2xl'>
-        <h1 className='bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-3xl font-extrabold text-transparent md:text-4xl'>
-          Packages
-        </h1>
-        <p className='mt-2 text-muted-foreground'>
-          Explore curated trips across Kenya, Uganda, Tanzania, and Dubai. More
-          to come.
-        </p>
-      </div>
+    <>
+      <BreadcrumbStructuredData
+        items={[
+          { name: "Home", url: "/" },
+          { name: "Packages", url: "/packages" },
+        ]}
+      />
+      <script
+        type='application/ld+json'
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            name: `Tour packages by ${LEGAL_NAME}`,
+            numberOfItems: filtered.length,
+            itemListElement: filtered.map((p, i) => ({
+              "@type": "ListItem",
+              position: i + 1,
+              name: p.title,
+              url: absoluteUrl(
+                `/packages/booking/${encodeURIComponent(p.title)}`
+              ),
+            })),
+          }),
+        }}
+      />
 
-      <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
-        <div className='flex w-full items-baseline-last justify-between gap-4 sm:justify-start'>
-          <div className='w-full max-w-md'>
-            <p className='text-sm text-muted-foreground mb-1'>
-              Filter by location
+      <Section size='loose'>
+        <Reveal className='max-w-2xl'>
+          <p className='mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-primary'>
+            Curated journeys
+          </p>
+          <h1 className='text-4xl font-semibold md:text-5xl'>Tour packages</h1>
+          <p className='mt-4 text-lg text-muted-foreground'>
+            Trips across Kenya, Uganda, Tanzania and Dubai — each one costed,
+            planned and supported by our Nairobi team.
+          </p>
+        </Reveal>
+
+        <div className='mt-10 flex flex-col gap-4 border-b pb-6 sm:flex-row sm:items-end sm:justify-between'>
+          <DestinationFilter options={destinations} value={destination} />
+          <p
+            className='text-sm text-muted-foreground'
+            role='status'
+            aria-live='polite'>
+            Showing {filtered.length}{" "}
+            {filtered.length === 1 ? "package" : "packages"}
+            {destination ? ` in ${destination}` : ""}
+          </p>
+        </div>
+
+        {filtered.length === 0 ? (
+          <div className='mt-12 rounded-2xl border border-dashed p-12 text-center'>
+            <h2 className='text-lg font-semibold'>No packages here yet</h2>
+            <p className='mt-2 text-muted-foreground'>
+              {destination
+                ? "Try another destination, or tell us where you'd like to go."
+                : "New itineraries are on the way — tell us what you have in mind."}
             </p>
-            <Select
-              value={selectedLocation ?? "__all__"}
-              onValueChange={(v) =>
-                setSelectedLocation(v === "__all__" ? undefined : v)
-              }>
-              <SelectTrigger className='w-full'>
-                <SelectValue placeholder='All locations' />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value='__all__'>All locations</SelectItem>
-                {destinationOptions.map((d) => (
-                  <SelectItem key={d} value={d}>
-                    {d}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Button asChild variant='brand' className='mt-6'>
+              <Link href='/contact'>Plan a custom trip</Link>
+            </Button>
           </div>
-          <div className='text-xs text-muted-foreground'>
-            {filteredPackages === undefined ? "—" : filteredPackages.length}{" "}
-            package
-            {filteredPackages !== undefined && filteredPackages.length === 1
-              ? ""
-              : "s"}
-          </div>
-        </div>
-      </div>
-
-      <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
-        {filteredPackages === undefined ? (
-          Array.from({ length: 6 }).map((_, idx) => (
-            <Card
-              key={idx}
-              className='group flex h-full min-h-[26rem] flex-col overflow-hidden rounded-xl border shadow-sm'>
-              <div className='relative h-44 w-full overflow-hidden bg-muted animate-pulse' />
-              <CardHeader className='pb-2'>
-                <div className='h-5 w-4/5 rounded bg-muted animate-pulse' />
-                <div className='mt-2 h-4 w-1/3 rounded bg-muted animate-pulse' />
-              </CardHeader>
-              <CardContent className='flex flex-col gap-3 pt-0 flex-1'>
-                <div className='h-4 w-1/2 rounded bg-muted animate-pulse' />
-                <div className='space-y-2 flex-1'>
-                  <div className='h-3 w-5/6 rounded bg-muted animate-pulse' />
-                  <div className='h-3 w-2/3 rounded bg-muted animate-pulse' />
-                  <div className='h-3 w-1/2 rounded bg-muted animate-pulse' />
-                </div>
-                <div className='mt-1 flex items-center gap-2'>
-                  <div className='h-9 w-24 rounded bg-muted animate-pulse' />
-                  <div className='h-9 w-24 rounded bg-muted animate-pulse' />
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        ) : filteredPackages.length < 1 ? (
-          <Card className='col-span-full'>
-            <CardHeader>
-              <CardTitle>No packages available</CardTitle>
-              <CardDescription>Please check back later.</CardDescription>
-            </CardHeader>
-          </Card>
         ) : (
-          filteredPackages.map((pkg) => (
-            <Card
-              key={pkg._id}
-              className='group flex h-full min-h-[26rem] flex-col overflow-hidden rounded-xl border shadow-sm transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg'>
-              <div className='relative h-44 w-full overflow-hidden'>
-                <Image
-                  src={pkg.image}
-                  alt={pkg.title}
-                  fill
-                  className='object-cover transition-transform duration-300 group-hover:scale-105'
-                />
-                <div className='absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent' />
-                <span className='absolute bottom-2 left-2 rounded-md bg-black/60 px-2 py-1 text-xs text-white backdrop-blur'>
-                  {pkg.destination}
-                </span>
-              </div>
-              <CardHeader className='pb-2'>
-                <CardTitle className='text-lg leading-5'>
-                  <span className='line-clamp-2'>{pkg.title}</span>
-                </CardTitle>
-                <CardDescription className='flex items-center gap-2'>
-                  <span className='font-semibold'>Price:</span> From $
-                  {pkg.price.toLocaleString()}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className='flex flex-col gap-3 pt-0 flex-1'>
-                <div className='flex-1'>
-                  <div className='text-sm font-semibold'>
-                    Destination highlights
-                  </div>
-                  <ul className='mt-1 list-disc space-y-1 pl-5 text-sm text-muted-foreground'>
-                    {pkg.highlight.map((h: string) => (
-                      <li key={h}>{h}</li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className='mt-1 flex items-center gap-2'>
-                  <Button asChild size='sm' className='shadow'>
-                    <Link
-                      href={{
-                        pathname: `/packages/booking/${pkg.title}`,
-                        query: { price: pkg.price },
-                      }}>
-                      Book Now
-                    </Link>
-                  </Button>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant='outline' size='sm'>
-                        Itinerary
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className='w-72'>
-                      <div className='mb-2 text-sm font-semibold'>
-                        Itinerary
-                      </div>
-                      <ul className='list-disc space-y-1 pl-5 text-sm text-muted-foreground'>
-                        {pkg.itinerary.map((it: string) => (
-                          <li key={it}>{it}</li>
-                        ))}
-                      </ul>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+          <RevealGroup className='mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
+            {filtered.map((pkg, i) => (
+              <RevealItem key={pkg._id} className='h-full'>
+                {/* The first row is above the fold on most viewports. */}
+                <PackageCard pkg={pkg} priority={i < 4} />
+              </RevealItem>
+            ))}
+          </RevealGroup>
         )}
-      </div>
 
-      <div className='rounded-xl border p-6'>
-        <h2 className='text-xl font-semibold'>Custom Package?</h2>
-        <p className='mt-1 text-sm text-muted-foreground'>
-          Tell us your dream trip—we’ll tailor it for you.
-        </p>
-        <div className='mt-4'>
-          <Button asChild>
-            <Link href='/contact'>Start Planning</Link>
-          </Button>
-        </div>
-      </div>
-    </div>
+        <Reveal className='mt-16 overflow-hidden rounded-3xl bg-accent px-6 py-12 sm:px-12'>
+          <div className='max-w-2xl'>
+            <h2 className='text-2xl font-semibold md:text-3xl'>
+              Want something that isn&apos;t on this list?
+            </h2>
+            <p className='mt-3 text-muted-foreground'>
+              Most of our trips start as a custom request. Tell us the dates,
+              the budget and who&apos;s travelling — we&apos;ll build it.
+            </p>
+            <Button asChild size='xl' variant='brand' className='mt-7'>
+              <Link href='/contact'>Start planning</Link>
+            </Button>
+          </div>
+        </Reveal>
+      </Section>
+    </>
   );
 }

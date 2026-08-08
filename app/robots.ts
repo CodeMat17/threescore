@@ -1,11 +1,17 @@
+import { SITE_URL, absoluteUrl } from "@/lib/site";
 import type { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
-  const base =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://threescoretours.com";
   return {
-    rules: [{ userAgent: "*", allow: "/" }],
-    sitemap: [`${base.replace(/\/$/, "")}/sitemap.xml`],
-    host: base,
+    rules: [
+      {
+        userAgent: "*",
+        allow: "/",
+        // Internal tooling and post-submission pages carry no search value.
+        disallow: ["/admin/", "/thank-you", "/contact/success"],
+      },
+    ],
+    sitemap: [absoluteUrl("/sitemap.xml")],
+    host: SITE_URL,
   };
 }
