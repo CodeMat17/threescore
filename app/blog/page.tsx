@@ -35,7 +35,7 @@ export const metadata = pageMetadata({
   ],
 });
 
-const PAGE_SIZE = 9;
+const PAGE_SIZE = 12;
 
 export default async function BlogPage({
   searchParams,
@@ -109,7 +109,12 @@ export default async function BlogPage({
               : "No posts yet — check back soon."}
           </p>
         ) : (
-          <RevealGroup className='mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
+          // Keyed by page/query so the scroll-reveal remounts and re-runs.
+          // Without it the reused group keeps its finished `once` viewport
+          // trigger and the incoming cards stay at opacity 0.
+          <RevealGroup
+            key={`${query}-${page}`}
+            className='mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
             {visible.map((post, i) => (
               <RevealItem key={post.slug} className='h-full'>
                 <Card className='group relative flex h-full flex-col gap-0 overflow-hidden py-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl'>
